@@ -1,0 +1,468 @@
+{% extends "base.html" %}
+
+{% block title %}
+Veículos - Totti Concessionaria
+{% endblock %}
+
+{% block styles %}
+<style>
+.pagina-topo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+}
+.pagina-titulo h2 { margin: 0 0 6px; font-size: 28px; }
+.pagina-titulo p { margin: 0; color: #6b7280; font-size: 14px; }
+
+.btn-novo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #1f2937;
+    color: white;
+    text-decoration: none;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+}
+.btn-novo:hover { background: #111827; }
+
+.filtros {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 8px rgba(15,23,42,.04);
+}
+.filtros h3 { margin: 0 0 18px; font-size: 16px; }
+.filtros-grade {
+    display: grid;
+    grid-template-columns: minmax(230px,2fr) repeat(4,minmax(130px,1fr));
+    gap: 12px;
+}
+.campo-filtro label {
+    display: block;
+    margin-bottom: 6px;
+    color: #6b7280;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+.campo-filtro input,
+.campo-filtro select {
+    width: 100%;
+    min-height: 43px;
+    padding: 10px 11px;
+    border: 1px solid #d1d5db;
+    border-radius: 7px;
+    background: white;
+    color: #111827;
+    font-size: 14px;
+}
+.filtros-rodape {
+    margin-top: 17px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+.contagem { color: #6b7280; font-size: 13px; }
+.contagem strong { color: #111827; }
+.btn-limpar {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    padding: 9px 15px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.catalogo {
+    display: grid;
+    grid-template-columns: repeat(4,minmax(0,1fr));
+    gap: 20px;
+}
+.veiculo-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    box-shadow: 0 3px 12px rgba(15,23,42,.06);
+    transition: transform .2s, box-shadow .2s;
+}
+.veiculo-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 22px rgba(15,23,42,.10);
+}
+.veiculo-capa {
+    height: 190px;
+    background: #eef2f7;
+    position: relative;
+    overflow: hidden;
+}
+.veiculo-capa img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.veiculo-capa.sem-foto img {
+    object-fit: contain;
+    padding: 28px;
+    background: #f8fafc;
+}
+.status {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2;
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: bold;
+}
+.status-disponivel { background:#dcfce7; color:#166534; }
+.status-vendido { background:#fee2e2; color:#991b1b; }
+.status-outro { background:#e5e7eb; color:#374151; }
+
+.veiculo-conteudo {
+    padding: 19px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+.marca-veiculo {
+    color: #6b7280;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: 5px;
+}
+.modelo { margin:0 0 6px; color:#111827; font-size:21px; }
+.ano-cor { color:#6b7280; font-size:13px; margin-bottom:17px; }
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 10px;
+    margin-bottom: 18px;
+}
+.info-item { background:#f8fafc; border-radius:7px; padding:9px; }
+.info-label {
+    display:block; color:#9ca3af; font-size:9px; font-weight:bold;
+    text-transform:uppercase; margin-bottom:4px;
+}
+.info-valor {
+    display:block; color:#374151; font-size:12px; font-weight:bold;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.preco-area { margin-top:auto; }
+.preco-label { display:block; color:#6b7280; font-size:11px; margin-bottom:3px; }
+.preco { color:#111827; font-size:24px; font-weight:800; }
+.sem-preco { color:#6b7280; font-size:16px; font-weight:bold; }
+
+.acoes-card { display:flex; gap:8px; flex-wrap:wrap; margin-top:18px; }
+.acoes-card a {
+    flex:1; min-width:90px; text-align:center; text-decoration:none;
+    padding:10px 11px; border-radius:7px; font-size:12px; font-weight:bold;
+}
+.btn-visualizar { background:#eef2f7; color:#1f2937; border:1px solid #d7dde5; }
+.btn-comprar { background:#16a34a; color:white; }
+.btn-editar { background:#f59e0b; color:white; }
+.indisponivel {
+    width:100%; text-align:center; background:#f3f4f6; color:#9ca3af;
+    padding:10px; border-radius:7px; font-size:12px; font-weight:bold;
+}
+.sem-resultados {
+    display:none; grid-column:1/-1; background:white; border:1px dashed #d1d5db;
+    border-radius:12px; padding:45px 20px; text-align:center; color:#6b7280;
+}
+.sem-resultados strong { display:block; color:#374151; font-size:17px; margin-bottom:6px; }
+
+@media (max-width:1250px) {
+    .catalogo { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .filtros-grade { grid-template-columns:repeat(3,minmax(0,1fr)); }
+}
+@media (max-width:850px) {
+    .catalogo { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .filtros-grade { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media (max-width:550px) {
+    .catalogo, .filtros-grade { grid-template-columns:1fr; }
+    .btn-novo { width:100%; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <div class="pagina-topo">
+        <div class="pagina-titulo">
+            {% if session.get("usuario_perfil") == "Cliente" %}
+            <h2>Encontre seu próximo carro</h2>
+            <p>Confira os veículos disponíveis na Totti Concessionaria.</p>
+            {% else %}
+            <h2>Veículos</h2>
+            <p>Consulte e gerencie o estoque da concessionária.</p>
+            {% endif %}
+        </div>
+
+        {% if session.get("usuario_perfil") in ["Superuser", "Administrador"] %}
+        <a href="/veiculos/novo" class="btn-novo">+ Cadastrar Veículo</a>
+        {% endif %}
+    </div>
+
+    <div class="filtros">
+        <h3>Filtrar veículos</h3>
+
+        <div class="filtros-grade">
+            <div class="campo-filtro">
+                <label>Pesquisar</label>
+                <input type="text" id="filtroBusca" placeholder="Marca, modelo, placa...">
+            </div>
+
+            <div class="campo-filtro">
+                <label>Marca</label>
+                <select id="filtroMarca"><option value="">Todas</option></select>
+            </div>
+
+            <div class="campo-filtro">
+                <label>Ano</label>
+                <select id="filtroAno"><option value="">Todos</option></select>
+            </div>
+
+            <div class="campo-filtro">
+                <label>Cor</label>
+                <select id="filtroCor"><option value="">Todas</option></select>
+            </div>
+
+            <div class="campo-filtro">
+                <label>Status</label>
+                <select id="filtroStatus"><option value="">Todos</option></select>
+            </div>
+        </div>
+
+        <div class="filtros-rodape">
+            <div class="contagem">
+                <strong id="quantidadeVeiculos">0</strong> veículo(s) encontrado(s)
+            </div>
+            <button type="button" class="btn-limpar" id="btnLimpar">Limpar filtros</button>
+        </div>
+    </div>
+
+    <div class="catalogo" id="catalogoVeiculos">
+
+        {% for veiculo in veiculos %}
+
+        <article
+            class="veiculo-card"
+            data-marca="{{ veiculo[4] or '' }}"
+            data-modelo="{{ veiculo[5] or '' }}"
+            data-ano="{{ veiculo[6] or '' }}"
+            data-cor="{{ veiculo[7] or '' }}"
+            data-placa="{{ veiculo[1] or '' }}"
+            data-renavam="{{ veiculo[2] or '' }}"
+            data-chassi="{{ veiculo[3] or '' }}"
+            data-status="{{ veiculo[10] or '' }}">
+
+            <div class="veiculo-capa {% if not veiculo[11] %}sem-foto{% endif %}">
+                {% if veiculo[11] %}
+                <img
+                    src="{{ url_for('static', filename='veiculos/' ~ veiculo[11]) }}"
+                    alt="{{ veiculo[4] }} {{ veiculo[5] }}">
+                {% else %}
+                <img
+                    src="{{ url_for('static', filename='images/logo_totti.png') }}"
+                    alt="Totti Concessionaria">
+                {% endif %}
+
+                {% if veiculo[10] == "Disponível" %}
+                <span class="status status-disponivel">Disponível</span>
+                {% elif veiculo[10] == "Vendido" %}
+                <span class="status status-vendido">Vendido</span>
+                {% else %}
+                <span class="status status-outro">{{ veiculo[10] or 'Sem status' }}</span>
+                {% endif %}
+            </div>
+
+            <div class="veiculo-conteudo">
+                <div class="marca-veiculo">{{ veiculo[4] or '-' }}</div>
+                <h3 class="modelo">{{ veiculo[5] or 'Modelo não informado' }}</h3>
+
+                <div class="ano-cor">
+                    {{ veiculo[6] or '-' }}
+                    {% if veiculo[7] %} · {{ veiculo[7] }}{% endif %}
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Quilometragem</span>
+                        <span class="info-valor">
+                            {% if veiculo[8] is not none %}
+                            {{ "{:,}".format(veiculo[8]).replace(",", ".") }} km
+                            {% else %}-{% endif %}
+                        </span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="info-label">Placa</span>
+                        <span class="info-valor">{{ veiculo[1] or '-' }}</span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="info-label">RENAVAM</span>
+                        <span class="info-valor">{{ veiculo[2] or '-' }}</span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="info-label">Ano</span>
+                        <span class="info-valor">{{ veiculo[6] or '-' }}</span>
+                    </div>
+                </div>
+
+                <div class="preco-area">
+                    <span class="preco-label">Preço de Venda</span>
+                    {% if veiculo[9] is not none %}
+                    <div class="preco">
+                        R$ {{ "{:,.2f}".format(veiculo[9]).replace(",", "X").replace(".", ",").replace("X", ".") }}
+                    </div>
+                    {% else %}
+                    <div class="sem-preco">Consulte o preço</div>
+                    {% endif %}
+                </div>
+
+                <div class="acoes-card">
+                    <a href="/veiculos/{{ veiculo[0] }}" class="btn-visualizar">Visualizar</a>
+
+                    {% if session.get("usuario_perfil") == "Cliente" %}
+                        {% if veiculo[10] == "Disponível" and veiculo[9] is not none %}
+                        <a href="/comprar/{{ veiculo[0] }}" class="btn-comprar">Comprar</a>
+                        {% else %}
+                        <div class="indisponivel">Indisponível para compra</div>
+                        {% endif %}
+                    {% endif %}
+
+                    {% if session.get("usuario_perfil") in ["Superuser", "Administrador"] %}
+                    <a href="/veiculos/{{ veiculo[0] }}/editar" class="btn-editar">Editar</a>
+                    {% endif %}
+                </div>
+            </div>
+        </article>
+
+        {% endfor %}
+
+        <div class="sem-resultados" id="semResultados">
+            <strong>Nenhum veículo encontrado</strong>
+            Tente alterar os filtros selecionados.
+        </div>
+
+    </div>
+</div>
+
+<script>
+(function () {
+    const cards = Array.from(document.querySelectorAll(".veiculo-card"));
+    const busca = document.getElementById("filtroBusca");
+    const marca = document.getElementById("filtroMarca");
+    const ano = document.getElementById("filtroAno");
+    const cor = document.getElementById("filtroCor");
+    const status = document.getElementById("filtroStatus");
+    const quantidade = document.getElementById("quantidadeVeiculos");
+    const semResultados = document.getElementById("semResultados");
+    const btnLimpar = document.getElementById("btnLimpar");
+
+    function normalizar(texto) {
+        return String(texto || "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase()
+            .trim();
+    }
+
+    function preencherSelect(select, valores, numerico = false) {
+        let lista = Array.from(new Set(valores.filter(valor => String(valor).trim())));
+        if (numerico) {
+            lista.sort((a,b) => Number(b) - Number(a));
+        } else {
+            lista.sort((a,b) => String(a).localeCompare(String(b), "pt-BR"));
+        }
+
+        lista.forEach(valor => {
+            const option = document.createElement("option");
+            option.value = valor;
+            option.textContent = valor;
+            select.appendChild(option);
+        });
+    }
+
+    preencherSelect(marca, cards.map(card => card.dataset.marca));
+    preencherSelect(ano, cards.map(card => card.dataset.ano), true);
+    preencherSelect(cor, cards.map(card => card.dataset.cor));
+    preencherSelect(status, cards.map(card => card.dataset.status));
+
+    function aplicarFiltros() {
+        const termo = normalizar(busca.value);
+        const marcaSelecionada = normalizar(marca.value);
+        const anoSelecionado = String(ano.value);
+        const corSelecionada = normalizar(cor.value);
+        const statusSelecionado = normalizar(status.value);
+
+        let visiveis = 0;
+
+        cards.forEach(card => {
+            const texto = normalizar([
+                card.dataset.marca,
+                card.dataset.modelo,
+                card.dataset.ano,
+                card.dataset.cor,
+                card.dataset.placa,
+                card.dataset.renavam,
+                card.dataset.chassi
+            ].join(" "));
+
+            const mostrar =
+                (!termo || texto.includes(termo)) &&
+                (!marcaSelecionada || normalizar(card.dataset.marca) === marcaSelecionada) &&
+                (!anoSelecionado || card.dataset.ano === anoSelecionado) &&
+                (!corSelecionada || normalizar(card.dataset.cor) === corSelecionada) &&
+                (!statusSelecionado || normalizar(card.dataset.status) === statusSelecionado);
+
+            card.style.display = mostrar ? "flex" : "none";
+
+            if (mostrar) visiveis++;
+        });
+
+        quantidade.textContent = visiveis;
+        semResultados.style.display = visiveis === 0 ? "block" : "none";
+    }
+
+    [busca, marca, ano, cor, status].forEach(campo => {
+        campo.addEventListener("input", aplicarFiltros);
+        campo.addEventListener("change", aplicarFiltros);
+    });
+
+    btnLimpar.addEventListener("click", function () {
+        busca.value = "";
+        marca.value = "";
+        ano.value = "";
+        cor.value = "";
+        status.value = "";
+        aplicarFiltros();
+        busca.focus();
+    });
+
+    aplicarFiltros();
+})();
+</script>
+{% endblock %}

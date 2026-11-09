@@ -1,0 +1,419 @@
+{% extends "base.html" %}
+
+{% block title %}
+Clientes - Totti Concessionaria
+{% endblock %}
+
+
+{% block styles %}
+
+<style>
+
+.topo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.btn-novo {
+    display: inline-block;
+    background: #16a34a;
+    color: white;
+    padding: 11px 18px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.busca {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.busca input {
+    min-width: 320px;
+    padding: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+}
+
+.btn-pesquisar {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-limpar {
+    background: #e5e7eb;
+    color: #111827;
+    padding: 10px 18px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.tabela {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 1100px;
+}
+
+th,
+td {
+    padding: 13px 10px;
+    text-align: center;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+th {
+    background: #111827;
+    color: white;
+}
+
+tr:hover {
+    background: #f9fafb;
+}
+
+.tipo-pessoa {
+    font-weight: bold;
+}
+
+.tipo-pf {
+    color: #2563eb;
+}
+
+.tipo-pj {
+    color: #7c3aed;
+}
+
+.acoes {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn-editar {
+    background: #f59e0b;
+    color: white;
+    padding: 7px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.btn-excluir-super {
+    background: #7f1d1d;
+    color: white;
+    border: none;
+    padding: 7px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.sem-registros {
+    padding: 25px;
+    color: #6b7280;
+}
+
+.super-aviso {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+    padding: 12px;
+    border-radius: 7px;
+    margin-top: 15px;
+}
+
+</style>
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container">
+
+
+    <div class="card">
+
+        <div class="topo">
+
+            <div>
+
+                <h2>
+                    Clientes
+                </h2>
+
+                <a
+                    href="/clientes/novo"
+                    class="btn-novo">
+
+                    + Cadastrar Cliente
+
+                </a>
+
+
+                {% if session.get("usuario_perfil") == "Superuser" %}
+
+                <div class="super-aviso">
+
+                    <strong>Superuser:</strong>
+                    você possui permissão para excluir
+                    definitivamente clientes e seus vínculos.
+
+                </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <form
+                method="GET"
+                action="/clientes"
+                class="busca">
+
+                <input
+                    type="text"
+                    name="busca"
+                    value="{{ busca }}"
+                    placeholder="Nome, CPF, razão social ou CNPJ">
+
+
+                <button
+                    type="submit"
+                    class="btn-pesquisar">
+
+                    Pesquisar
+
+                </button>
+
+
+                <a
+                    href="/clientes"
+                    class="btn-limpar">
+
+                    Limpar
+
+                </a>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <div class="card">
+
+        <div class="tabela">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>ID</th>
+                        <th>Tipo</th>
+                        <th>Cliente</th>
+                        <th>Documento</th>
+                        <th>Telefone</th>
+                        <th>E-mail</th>
+                        <th>Endereço</th>
+                        <th>Ações</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+
+                    {% for cliente in clientes %}
+
+
+                    <tr>
+
+
+                        <td>
+                            {{ cliente[0] }}
+                        </td>
+
+
+                        <td>
+
+                            {% if cliente[1] == 'PJ' %}
+
+                            <span class="tipo-pessoa tipo-pj">
+                                PJ
+                            </span>
+
+                            {% else %}
+
+                            <span class="tipo-pessoa tipo-pf">
+                                PF
+                            </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <td>
+
+                            {% if cliente[1] == 'PJ' %}
+
+                            <strong>
+                                {{ cliente[4] or '' }}
+                            </strong>
+
+
+                            {% if cliente[5] %}
+
+                            <br>
+
+                            <small>
+                                {{ cliente[5] }}
+                            </small>
+
+                            {% endif %}
+
+
+                            {% else %}
+
+
+                            <strong>
+                                {{ cliente[2] or '' }}
+                            </strong>
+
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <td>
+
+                            {% if cliente[1] == 'PJ' %}
+
+                            {{ cliente[6] or '' }}
+
+                            {% else %}
+
+                            {{ cliente[3] or '' }}
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <td>
+                            {{ cliente[8] or '' }}
+                        </td>
+
+
+                        <td>
+                            {{ cliente[9] or '' }}
+                        </td>
+
+
+                        <td>
+                            {{ cliente[10] or '' }}
+                        </td>
+
+
+                        <td>
+
+                            <div class="acoes">
+
+
+                                <a
+                                    href="/clientes/{{ cliente[0] }}/editar"
+                                    class="btn-editar">
+
+                                    Editar
+
+                                </a>
+
+
+                                {% if session.get("usuario_perfil") == "Superuser" %}
+
+                                <form
+                                    method="POST"
+                                    action="/clientes/{{ cliente[0] }}/excluir-definitivamente"
+                                    onsubmit="
+                                        return confirm(
+                                            'ATENÇÃO! Esta ação é definitiva.\n\n' +
+                                            'O usuário do cliente será excluído, ' +
+                                            'as vendas vinculadas serão removidas ' +
+                                            'e os veículos retornarão para Disponível.\n\n' +
+                                            'Deseja realmente continuar?'
+                                        );
+                                    ">
+
+                                    <button
+                                        type="submit"
+                                        class="btn-excluir-super">
+
+                                        Excluir definitivamente
+
+                                    </button>
+
+                                </form>
+
+                                {% endif %}
+
+
+                            </div>
+
+                        </td>
+
+
+                    </tr>
+
+
+                    {% else %}
+
+
+                    <tr>
+
+                        <td
+                            colspan="8"
+                            class="sem-registros">
+
+                            Nenhum cliente encontrado.
+
+                        </td>
+
+                    </tr>
+
+
+                    {% endfor %}
+
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

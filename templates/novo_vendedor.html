@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Cadastrar Vendedor</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f3f4f6;
+}
+
+.container {
+    width: 90%;
+    max-width: 750px;
+    margin: 40px auto;
+}
+
+.card {
+    background: white;
+    padding: 28px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+.campo {
+    margin-bottom: 18px;
+}
+
+label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: bold;
+}
+
+input {
+    width: 100%;
+    padding: 11px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+}
+
+.acoes {
+    display: flex;
+    gap: 10px;
+    margin-top: 25px;
+}
+
+.btn-salvar {
+    background: #16a34a;
+    color: white;
+    border: none;
+    padding: 11px 20px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-cancelar {
+    background: #e5e7eb;
+    color: #111827;
+    padding: 11px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="card">
+
+<h1>Cadastrar Vendedor</h1>
+
+<form method="POST">
+
+<div class="campo">
+
+<label>Nome Completo</label>
+
+<input
+type="text"
+name="nome"
+required>
+
+</div>
+
+<div class="campo">
+
+<label>CPF</label>
+
+<input
+type="text"
+name="cpf"
+placeholder="000.000.000-00"
+required>
+
+</div>
+
+<div class="campo">
+
+<label>Telefone</label>
+
+<input
+type="text"
+name="telefone">
+
+</div>
+
+<div class="campo">
+
+<label>E-mail</label>
+
+<input
+type="email"
+name="email">
+
+</div>
+
+<div class="acoes">
+
+<button
+type="submit"
+class="btn-salvar">
+
+Cadastrar Vendedor
+
+</button>
+
+<a
+href="/vendedores"
+class="btn-cancelar">
+
+Cancelar
+
+</a>
+
+</div>
+
+</form>
+
+</div>
+
+</div>
+
+</body>
+
+</html>

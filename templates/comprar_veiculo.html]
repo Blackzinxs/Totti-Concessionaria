@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+
+{% block title %}
+Comprar Veículo - Totti Concessionaria
+{% endblock %}
+
+
+{% block styles %}
+
+<style>
+
+.compra {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.resumo {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.veiculo {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 12px;
+}
+
+.preco {
+    font-size: 28px;
+    font-weight: bold;
+    color: #166534;
+    margin-top: 15px;
+}
+
+.informacoes {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.campo {
+    margin-top: 22px;
+}
+
+.campo label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 7px;
+}
+
+.campo select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 7px;
+    font-size: 15px;
+}
+
+.aviso {
+    margin-top: 20px;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    color: #9a3412;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.erro {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 13px;
+    border-radius: 7px;
+    margin-bottom: 20px;
+}
+
+.acoes {
+    display: flex;
+    gap: 12px;
+    margin-top: 25px;
+    flex-wrap: wrap;
+}
+
+.btn-comprar {
+    background: #16a34a;
+    color: white;
+    border: none;
+    padding: 13px 22px;
+    border-radius: 7px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-cancelar {
+    background: #e5e7eb;
+    color: #111827;
+    padding: 13px 22px;
+    border-radius: 7px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+@media (max-width: 600px) {
+
+    .informacoes {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+</style>
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container">
+
+<div class="card compra">
+
+
+<h2>
+Confirmar Compra
+</h2>
+
+
+{% if erro %}
+
+<div class="erro">
+{{ erro }}
+</div>
+
+{% endif %}
+
+
+<div class="resumo">
+
+
+<div class="veiculo">
+
+{{ veiculo[1] }}
+{{ veiculo[2] }}
+
+</div>
+
+
+<div class="informacoes">
+
+
+<div>
+
+<strong>Ano:</strong>
+
+{{ veiculo[3] }}
+
+</div>
+
+
+<div>
+
+<strong>Cor:</strong>
+
+{{ veiculo[4] or '-' }}
+
+</div>
+
+
+<div>
+
+<strong>Quilometragem:</strong>
+
+{% if veiculo[5] is not none %}
+
+{{ "{:,}".format(veiculo[5]).replace(",", ".") }} km
+
+{% else %}
+
+-
+
+{% endif %}
+
+</div>
+
+
+<div>
+
+<strong>Placa:</strong>
+
+{{ veiculo[8] }}
+
+</div>
+
+
+</div>
+
+
+<div class="preco">
+
+{% if veiculo[6] is not none %}
+
+R$
+
+{{ "{:,.2f}".format(veiculo[6])
+.replace(",", "X")
+.replace(".", ",")
+.replace("X", ".") }}
+
+{% else %}
+
+Preço não informado
+
+{% endif %}
+
+</div>
+
+
+</div>
+
+
+<form method="POST">
+
+
+<div class="campo">
+
+<label>
+Forma de Pagamento
+</label>
+
+<select
+name="forma_pagamento"
+required>
+
+<option value="">
+Selecione
+</option>
+
+
+{% for forma in formas_pagamento %}
+
+<option value="{{ forma }}">
+
+{{ forma }}
+
+</option>
+
+{% endfor %}
+
+
+</select>
+
+</div>
+
+
+<div class="aviso">
+
+<strong>Atenção:</strong>
+
+ao confirmar, a compra será registrada
+em seu nome e o veículo ficará marcado
+como vendido no sistema.
+
+</div>
+
+
+<div class="acoes">
+
+
+<button
+type="submit"
+class="btn-comprar"
+onclick="
+    return confirm(
+        'Deseja realmente confirmar a compra deste veículo?'
+    );
+">
+
+Confirmar Compra
+
+</button>
+
+
+<a
+href="/veiculos/{{ veiculo[0] }}"
+class="btn-cancelar">
+
+Cancelar
+
+</a>
+
+
+</div>
+
+
+</form>
+
+
+</div>
+
+</div>
+
+{% endblock %}

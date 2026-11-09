@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Editar Vendedor</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f3f4f6;
+}
+
+.container {
+    width: 90%;
+    max-width: 750px;
+    margin: 40px auto;
+}
+
+.card {
+    background: white;
+    padding: 28px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+.campo {
+    margin-bottom: 18px;
+}
+
+label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: bold;
+}
+
+input {
+    width: 100%;
+    padding: 11px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+}
+
+.acoes {
+    display: flex;
+    gap: 10px;
+    margin-top: 25px;
+}
+
+.btn-salvar {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 11px 20px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-cancelar {
+    background: #e5e7eb;
+    color: #111827;
+    padding: 11px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="card">
+
+<h1>Editar Vendedor</h1>
+
+<form method="POST">
+
+<div class="campo">
+
+<label>Nome Completo</label>
+
+<input
+type="text"
+name="nome"
+value="{{ vendedor[1] }}"
+required>
+
+</div>
+
+<div class="campo">
+
+<label>CPF</label>
+
+<input
+type="text"
+name="cpf"
+value="{{ vendedor[2] }}"
+required>
+
+</div>
+
+<div class="campo">
+
+<label>Telefone</label>
+
+<input
+type="text"
+name="telefone"
+value="{{ vendedor[3] or '' }}">
+
+</div>
+
+<div class="campo">
+
+<label>E-mail</label>
+
+<input
+type="email"
+name="email"
+value="{{ vendedor[4] or '' }}">
+
+</div>
+
+<div class="acoes">
+
+<button
+type="submit"
+class="btn-salvar">
+
+Salvar Alterações
+
+</button>
+
+<a
+href="/vendedores"
+class="btn-cancelar">
+
+Cancelar
+
+</a>
+
+</div>
+
+</form>
+
+</div>
+
+</div>
+
+</body>
+
+</html>

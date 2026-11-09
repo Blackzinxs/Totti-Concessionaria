@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block title %}
+Cadastrar Veículo - Totti Concessionaria
+{% endblock %}
+
+{% block styles %}
+<style>
+.form-card { max-width: 1050px; margin: 0 auto; }
+.form-topo { margin-bottom: 28px; }
+.form-topo h2 { margin: 0 0 7px; }
+.form-topo p { margin: 0; color: #6b7280; }
+
+.secao {
+    margin-top: 26px;
+    padding-top: 22px;
+    border-top: 1px solid #e5e7eb;
+}
+.secao:first-of-type { margin-top: 0; padding-top: 0; border-top: 0; }
+.secao h3 { margin: 0 0 17px; font-size: 16px; }
+
+.grade {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: 17px;
+}
+.campo-total { grid-column: 1 / -1; }
+.campo label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #374151;
+}
+.campo input,
+.campo select,
+.campo textarea {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 7px;
+    background: white;
+    font-size: 14px;
+}
+.campo textarea { min-height: 105px; resize: vertical; }
+
+.upload-box {
+    border: 1px dashed #94a3b8;
+    background: #f8fafc;
+    border-radius: 10px;
+    padding: 18px;
+}
+.upload-box small {
+    display: block;
+    color: #6b7280;
+    margin-top: 7px;
+}
+.acoes { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 28px; }
+.btn-salvar {
+    border: none; background: #16a34a; color: white;
+    padding: 12px 20px; border-radius: 7px; font-weight: bold; cursor: pointer;
+}
+.btn-cancelar {
+    background: #e5e7eb; color: #111827; text-decoration: none;
+    padding: 12px 20px; border-radius: 7px; font-weight: bold;
+}
+@media(max-width:700px) {
+    .grade { grid-template-columns: 1fr; }
+    .campo-total { grid-column: auto; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card form-card">
+
+        <div class="form-topo">
+            <h2>Cadastrar Veículo</h2>
+            <p>Adicione o veículo ao estoque da Totti Concessionaria.</p>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data">
+
+            <div class="secao">
+                <h3>Identificação</h3>
+
+                <div class="grade">
+                    <div class="campo">
+                        <label>Placa</label>
+                        <input type="text" name="placa" required>
+                    </div>
+
+                    <div class="campo">
+                        <label>RENAVAM</label>
+                        <input type="text" name="renavam" required>
+                    </div>
+
+                    <div class="campo campo-total">
+                        <label>Chassi</label>
+                        <input type="text" name="chassi" required>
+                    </div>
+
+                    <div class="campo campo-total">
+                        <label>Marca / Modelo</label>
+                        <select name="id_modelo" required>
+                            <option value="">Selecione</option>
+                            {% for modelo in modelos %}
+                            <option value="{{ modelo[0] }}">{{ modelo[1] }} - {{ modelo[2] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="secao">
+                <h3>Características</h3>
+
+                <div class="grade">
+                    <div class="campo">
+                        <label>Ano de Fabricação</label>
+                        <input type="number" name="ano_fabricacao" min="1900" max="2100" required>
+                    </div>
+
+                    <div class="campo">
+                        <label>Ano Modelo</label>
+                        <input type="number" name="ano_modelo" min="1900" max="2100" required>
+                    </div>
+
+                    <div class="campo">
+                        <label>Cor</label>
+                        <input type="text" name="cor" required>
+                    </div>
+
+                    <div class="campo">
+                        <label>Quilometragem</label>
+                        <input type="number" name="quilometragem" min="0" value="0" required>
+                    </div>
+
+                    <div class="campo">
+                        <label>Combustível</label>
+                        <select name="combustivel" required>
+                            <option value="">Selecione</option>
+                            <option>Flex</option>
+                            <option>Gasolina</option>
+                            <option>Etanol</option>
+                            <option>Diesel</option>
+                            <option>Elétrico</option>
+                            <option>Híbrido</option>
+                        </select>
+                    </div>
+
+                    <div class="campo">
+                        <label>Câmbio</label>
+                        <select name="cambio" required>
+                            <option value="">Selecione</option>
+                            <option>Manual</option>
+                            <option>Automático</option>
+                            <option>CVT</option>
+                            <option>Automatizado</option>
+                        </select>
+                    </div>
+
+                    <div class="campo campo-total">
+                        <label>Número do Motor</label>
+                        <input type="text" name="numero_motor">
+                    </div>
+                </div>
+            </div>
+
+            <div class="secao">
+                <h3>Venda</h3>
+
+                <div class="grade">
+                    <div class="campo">
+                        <label>Preço de Venda (R$)</label>
+                        <input type="number" name="preco_venda" min="0" step="0.01" required>
+                    </div>
+
+                    <div class="campo">
+                        <label>Status</label>
+                        <select name="status" required>
+                            <option value="Disponível">Disponível</option>
+                            <option value="Vendido">Vendido</option>
+                            <option value="Reservado">Reservado</option>
+                            <option value="Manutenção">Manutenção</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="secao">
+                <h3>Foto do Veículo</h3>
+
+                <div class="upload-box">
+                    <div class="campo">
+                        <label>Selecionar imagem</label>
+                        <input
+                            type="file"
+                            name="imagem"
+                            accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp">
+                        <small>Formatos aceitos: PNG, JPG, JPEG e WEBP. Máximo de 8 MB.</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="secao">
+                <h3>Observações</h3>
+
+                <div class="campo">
+                    <textarea name="observacoes" placeholder="Informações adicionais sobre o veículo..."></textarea>
+                </div>
+            </div>
+
+            <div class="acoes">
+                <button type="submit" class="btn-salvar">Cadastrar Veículo</button>
+                <a href="/" class="btn-cancelar">Cancelar</a>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+{% endblock %}

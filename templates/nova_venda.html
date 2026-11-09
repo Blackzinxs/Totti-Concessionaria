@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Registrar Venda</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f3f4f6;
+    color: #111827;
+}
+
+header {
+    background: #1f2937;
+    color: white;
+    padding: 18px 30px;
+}
+
+header h1 {
+    margin: 0;
+}
+
+.container {
+    width: 90%;
+    max-width: 950px;
+    margin: 35px auto;
+}
+
+.card {
+    background: white;
+    padding: 28px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+.formulario {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.campo {
+    display: flex;
+    flex-direction: column;
+}
+
+.campo label {
+    margin-bottom: 6px;
+    font-weight: bold;
+}
+
+.campo input,
+.campo select,
+.campo textarea {
+    padding: 11px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+}
+
+.campo textarea {
+    min-height: 100px;
+}
+
+.largura-total {
+    grid-column: 1 / -1;
+}
+
+.acoes {
+    margin-top: 25px;
+    display: flex;
+    gap: 10px;
+}
+
+.btn-salvar {
+    background: #16a34a;
+    color: white;
+    border: none;
+    padding: 12px 22px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-cancelar {
+    background: #e5e7eb;
+    color: #111827;
+    padding: 12px 22px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+@media (max-width: 650px) {
+
+    .formulario {
+        grid-template-columns: 1fr;
+    }
+
+    .largura-total {
+        grid-column: auto;
+    }
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+
+<h1>Registrar Venda</h1>
+
+</header>
+
+
+<div class="container">
+
+<div class="card">
+
+<form method="POST">
+
+<div class="formulario">
+
+
+<div class="campo largura-total">
+
+<label>Cliente</label>
+
+<select
+name="id_cliente"
+required>
+
+<option value="">
+Selecione o cliente
+</option>
+
+{% for cliente in clientes %}
+
+<option value="{{ cliente[0] }}">
+
+{{ cliente[1] }}
+
+{% if cliente[2] %}
+- {{ cliente[2] }}
+{% endif %}
+
+</option>
+
+{% endfor %}
+
+</select>
+
+</div>
+
+
+<div class="campo">
+
+<label>Vendedor</label>
+
+<select
+name="id_vendedor"
+required>
+
+<option value="">
+Selecione
+</option>
+
+{% for vendedor in vendedores %}
+
+<option value="{{ vendedor[0] }}">
+{{ vendedor[1] }}
+</option>
+
+{% endfor %}
+
+</select>
+
+</div>
+
+
+<div class="campo">
+
+<label>Data da Venda</label>
+
+<input
+type="date"
+name="data_venda"
+required>
+
+</div>
+
+
+<div class="campo largura-total">
+
+<label>Veículo</label>
+
+<select
+name="id_veiculo"
+id="id_veiculo"
+required
+onchange="atualizarValor()">
+
+<option
+value=""
+data-preco="">
+
+Selecione o veículo
+
+</option>
+
+{% for veiculo in veiculos %}
+
+<option
+value="{{ veiculo[0] }}"
+data-preco="{{ veiculo[5] }}">
+
+{{ veiculo[1] }}
+-
+{{ veiculo[2] }}
+{{ veiculo[3] }}
+-
+{{ veiculo[4] }}
+
+</option>
+
+{% endfor %}
+
+</select>
+
+</div>
+
+
+<div class="campo">
+
+<label>Valor da Venda</label>
+
+<input
+type="number"
+step="0.01"
+name="valor_venda"
+id="valor_venda"
+required>
+
+</div>
+
+
+<div class="campo">
+
+<label>Forma de Pagamento</label>
+
+<select
+name="forma_pagamento"
+required>
+
+<option value="">
+Selecione
+</option>
+
+<option>
+À Vista
+</option>
+
+<option>
+Financiamento
+</option>
+
+<option>
+Consórcio
+</option>
+
+<option>
+PIX
+</option>
+
+<option>
+Cartão de Crédito
+</option>
+
+</select>
+
+</div>
+
+
+<div class="campo largura-total">
+
+<label>Observações</label>
+
+<textarea
+name="observacoes"
+placeholder="Informações adicionais da negociação"></textarea>
+
+</div>
+
+</div>
+
+
+<div class="acoes">
+
+<button
+type="submit"
+class="btn-salvar">
+
+Registrar Venda
+
+</button>
+
+<a
+href="/vendas"
+class="btn-cancelar">
+
+Cancelar
+
+</a>
+
+</div>
+
+</form>
+
+</div>
+
+</div>
+
+
+<script>
+
+function atualizarValor() {
+
+    const select =
+        document.getElementById("id_veiculo");
+
+    const opcao =
+        select.options[select.selectedIndex];
+
+    const preco =
+        opcao.getAttribute("data-preco");
+
+    if (preco) {
+
+        document.getElementById(
+            "valor_venda"
+        ).value = preco;
+    }
+}
+
+</script>
+
+</body>
+
+</html>

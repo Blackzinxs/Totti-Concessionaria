@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}
+Minha Conta - Totti Concessionaria
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container">
+
+<div class="card">
+
+<h2>Minha Conta</h2>
+
+
+{% if cliente[1] == "PJ" %}
+
+<p>
+<strong>Razão Social:</strong>
+{{ cliente[4] or '' }}
+</p>
+
+<p>
+<strong>Nome Fantasia:</strong>
+{{ cliente[5] or '' }}
+</p>
+
+<p>
+<strong>CNPJ:</strong>
+{{ cliente[6] or '' }}
+</p>
+
+<p>
+<strong>Inscrição Estadual:</strong>
+{{ cliente[7] or '' }}
+</p>
+
+
+{% else %}
+
+
+<p>
+<strong>Nome:</strong>
+{{ cliente[2] or '' }}
+</p>
+
+<p>
+<strong>CPF:</strong>
+{{ cliente[3] or '' }}
+</p>
+
+
+{% endif %}
+
+
+<p>
+<strong>Telefone:</strong>
+{{ cliente[8] or '' }}
+</p>
+
+<p>
+<strong>E-mail:</strong>
+{{ cliente[9] or '' }}
+</p>
+
+<p>
+<strong>Endereço:</strong>
+{{ cliente[10] or '' }}
+</p>
+
+
+</div>
+
+</div>
+
+{% endblock %}

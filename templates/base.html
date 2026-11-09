@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+
+<html lang="pt-br">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {% block title %}
+        Totti Concessionaria
+        {% endblock %}
+    </title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        html {
+            min-height: 100%;
+        }
+
+
+        body {
+            margin: 0;
+
+            min-height: 100vh;
+
+            display: flex;
+            flex-direction: column;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background: #f4f6f8;
+
+            color: #1f2937;
+        }
+
+
+        /* ==================================================
+           CABEÇALHO
+           ================================================== */
+
+        .topo {
+            background: #ffffff;
+
+            border-bottom:
+                1px solid #e5e7eb;
+        }
+
+
+        .topo-conteudo {
+            width: 96%;
+            max-width: 1500px;
+
+            margin: auto;
+
+            min-height: 105px;
+
+            display: flex;
+
+            justify-content:
+                space-between;
+
+            align-items: center;
+
+            gap: 30px;
+
+            padding: 12px 0;
+        }
+
+
+        .marca {
+            display: flex;
+
+            align-items: center;
+
+            gap: 20px;
+
+            min-width: 0;
+        }
+
+
+        .marca a {
+            display: block;
+        }
+
+
+        .logo {
+            width: 250px;
+
+            max-height: 80px;
+
+            object-fit: contain;
+
+            display: block;
+        }
+
+
+        .titulo-sistema {
+            border-left:
+                1px solid #e5e7eb;
+
+            padding-left: 20px;
+        }
+
+
+        .titulo-sistema strong {
+            display: block;
+
+            font-size: 17px;
+
+            color: #111827;
+        }
+
+
+        .titulo-sistema span {
+            display: block;
+
+            margin-top: 5px;
+
+            color: #6b7280;
+
+            font-size: 13px;
+        }
+
+
+        /* ==================================================
+           USUÁRIO
+           ================================================== */
+
+        .usuario-area {
+            display: flex;
+
+            align-items: center;
+
+            gap: 15px;
+        }
+
+
+        .usuario-info {
+            text-align: right;
+        }
+
+
+        .usuario-nome {
+            display: block;
+
+            font-weight: bold;
+
+            color: #111827;
+
+            margin-bottom: 5px;
+        }
+
+
+        .usuario-perfil {
+            display: inline-block;
+
+            font-size: 11px;
+
+            font-weight: bold;
+
+            background: #eef2f7;
+
+            color: #475569;
+
+            padding: 5px 10px;
+
+            border-radius: 20px;
+
+            text-transform: uppercase;
+
+            letter-spacing: 0.03em;
+        }
+
+
+        .usuario-perfil.superuser {
+            background: #fff7ed;
+
+            color: #9a3412;
+        }
+
+
+        .btn-sair {
+            background: #dc2626;
+
+            color: white;
+
+            text-decoration: none;
+
+            padding: 10px 16px;
+
+            border-radius: 8px;
+
+            font-size: 13px;
+
+            font-weight: bold;
+
+            transition: 0.2s;
+        }
+
+
+        .btn-sair:hover {
+            background: #b91c1c;
+        }
+
+
+        /* ==================================================
+           MENU
+           ================================================== */
+
+        .menu {
+            background: #171c25;
+
+            box-shadow:
+                0 2px 8px
+                rgba(0, 0, 0, 0.08);
+        }
+
+
+        .menu-conteudo {
+            width: 96%;
+            max-width: 1500px;
+
+            margin: auto;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 4px;
+
+            overflow-x: auto;
+        }
+
+
+        .menu a {
+            color: #d1d5db;
+
+            text-decoration: none;
+
+            padding: 16px 18px;
+
+            font-size: 14px;
+
+            font-weight: 600;
+
+            border-bottom:
+                3px solid transparent;
+
+            white-space: nowrap;
+
+            transition: 0.2s;
+        }
+
+
+        .menu a:hover {
+            background: #242b36;
+
+            color: white;
+
+            border-bottom-color:
+                #9ca3af;
+        }
+
+
+        /* ==================================================
+           CONTEÚDO
+           ================================================== */
+
+        main {
+            flex: 1;
+        }
+
+
+        .container {
+            width: 96%;
+            max-width: 1500px;
+
+            margin: 30px auto;
+        }
+
+
+        .card {
+            background: white;
+
+            padding: 24px;
+
+            border:
+                1px solid #e5e7eb;
+
+            border-radius: 12px;
+
+            margin-bottom: 25px;
+
+            box-shadow:
+                0 2px 8px
+                rgba(15, 23, 42, 0.05);
+        }
+
+
+        h1,
+        h2,
+        h3 {
+            color: #111827;
+        }
+
+
+        a {
+            transition: 0.2s;
+        }
+
+
+        button,
+        input,
+        select,
+        textarea {
+            font-family: inherit;
+        }
+
+
+        button {
+            transition: 0.2s;
+        }
+
+
+        button:hover {
+            opacity: 0.92;
+        }
+
+
+        input,
+        select,
+        textarea {
+            outline: none;
+        }
+
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: #64748b !important;
+
+            box-shadow:
+                0 0 0 3px
+                rgba(100, 116, 139, 0.10);
+        }
+
+
+        /* ==================================================
+           RODAPÉ
+           ================================================== */
+
+        .rodape-sistema {
+            margin-top: auto;
+
+            background: #ffffff;
+
+            border-top:
+                1px solid #e5e7eb;
+
+            padding: 17px 20px;
+
+            text-align: center;
+
+            color: #9ca3af;
+
+            font-size: 11px;
+
+            letter-spacing: 0.02em;
+        }
+
+
+        .rodape-sistema strong {
+            color: #6b7280;
+
+            font-weight: 600;
+        }
+
+
+        /* ==================================================
+           RESPONSIVIDADE
+           ================================================== */
+
+        @media (max-width: 850px) {
+
+            .topo-conteudo {
+                flex-direction: column;
+
+                align-items: stretch;
+
+                padding: 16px 0;
+            }
+
+
+            .marca {
+                justify-content: center;
+            }
+
+
+            .logo {
+                width: 210px;
+            }
+
+
+            .titulo-sistema {
+                display: none;
+            }
+
+
+            .usuario-area {
+                justify-content:
+                    space-between;
+
+                border-top:
+                    1px solid #e5e7eb;
+
+                padding-top: 12px;
+            }
+
+
+            .usuario-info {
+                text-align: left;
+            }
+
+
+            .menu-conteudo {
+                width: 100%;
+
+                padding: 0 10px;
+            }
+
+
+            .menu a {
+                padding: 14px;
+            }
+
+        }
+
+
+        @media (max-width: 500px) {
+
+            .logo {
+                width: 185px;
+            }
+
+
+            .card {
+                padding: 17px;
+            }
+
+
+            .container {
+                margin-top: 20px;
+            }
+
+
+            .rodape-sistema {
+                font-size: 10px;
+            }
+
+        }
+
+    </style>
+
+
+    {% block styles %}
+    {% endblock %}
+
+</head>
+
+
+<body>
+
+
+<!-- ======================================================
+     CABEÇALHO
+     ====================================================== -->
+
+<header class="topo">
+
+
+    <div class="topo-conteudo">
+
+
+        <div class="marca">
+
+
+            <a href="/">
+
+                <img
+                    src="{{ url_for('static', filename='images/logo_totti.png') }}"
+                    alt="Totti Concessionária"
+                    class="logo">
+
+            </a>
+
+
+            <div class="titulo-sistema">
+
+                <strong>
+                    Sistema de Gestão
+                </strong>
+
+                <span>
+                    Veículos, clientes e vendas
+                </span>
+
+            </div>
+
+
+        </div>
+
+
+        {% if session.get("usuario_id") %}
+
+
+        <div class="usuario-area">
+
+
+            <div class="usuario-info">
+
+
+                <span class="usuario-nome">
+
+                    {{ session.get("usuario_nome") }}
+
+                </span>
+
+
+                {% if session.get("usuario_perfil") == "Superuser" %}
+
+
+                <span class="usuario-perfil superuser">
+
+                    Superuser
+
+                </span>
+
+
+                {% else %}
+
+
+                <span class="usuario-perfil">
+
+                    {{ session.get("usuario_perfil") }}
+
+                </span>
+
+
+                {% endif %}
+
+
+            </div>
+
+
+            <a
+                href="/logout"
+                class="btn-sair">
+
+                Sair
+
+            </a>
+
+
+        </div>
+
+
+        {% endif %}
+
+
+    </div>
+
+
+</header>
+
+
+<!-- ======================================================
+     MENU
+     ====================================================== -->
+
+{% if session.get("usuario_id") %}
+
+
+<nav class="menu">
+
+
+    <div class="menu-conteudo">
+
+
+        {% if session.get("usuario_perfil") == "Cliente" %}
+
+
+        <a href="/">
+            Veículos
+        </a>
+
+
+        <a href="/minha-conta">
+            Minha Conta
+        </a>
+
+
+        <a href="/minhas-compras">
+            Minhas Compras
+        </a>
+
+
+        {% else %}
+
+
+        <a href="/">
+            Veículos
+        </a>
+
+
+        <a href="/clientes">
+            Clientes
+        </a>
+
+
+        {% if session.get("usuario_perfil")
+              in ["Administrador", "Superuser"] %}
+
+
+        <a href="/vendedores">
+            Vendedores
+        </a>
+
+
+        {% endif %}
+
+
+        <a href="/vendas">
+            Vendas
+        </a>
+
+
+        {% if session.get("usuario_perfil")
+              in ["Administrador", "Superuser"] %}
+
+
+        <a href="/manutencoes">
+            Manutenções
+        </a>
+
+
+        <a href="/relatorios">
+            Relatórios
+        </a>
+
+
+        {% endif %}
+
+
+        {% if session.get("usuario_perfil") == "Superuser" %}
+
+
+        <a href="/usuarios">
+            Usuários
+        </a>
+
+
+        {% endif %}
+
+
+        {% endif %}
+
+
+    </div>
+
+
+</nav>
+
+
+{% endif %}
+
+
+<!-- ======================================================
+     CONTEÚDO
+     ====================================================== -->
+
+<main>
+
+    {% block content %}
+    {% endblock %}
+
+</main>
+
+
+<!-- ======================================================
+     RODAPÉ
+     ====================================================== -->
+
+<footer class="rodape-sistema">
+
+    Created by
+    <strong>
+        Gabriel Henrique Marques de Deus
+    </strong>
+
+</footer>
+
+
+</body>
+
+</html>

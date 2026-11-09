@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block title %}
+Editar Veículo - Totti Concessionaria
+{% endblock %}
+
+{% block styles %}
+<style>
+.form-card { max-width:1050px; margin:0 auto; }
+.form-topo { margin-bottom:28px; }
+.form-topo h2 { margin:0 0 7px; }
+.form-topo p { margin:0; color:#6b7280; }
+.secao { margin-top:26px; padding-top:22px; border-top:1px solid #e5e7eb; }
+.secao:first-of-type { margin-top:0; padding-top:0; border-top:0; }
+.secao h3 { margin:0 0 17px; font-size:16px; }
+
+.grade { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:17px; }
+.campo-total { grid-column:1/-1; }
+.campo label {
+    display:block; margin-bottom:6px; font-size:12px; font-weight:bold; color:#374151;
+}
+.campo input,
+.campo select,
+.campo textarea {
+    width:100%; padding:11px 12px; border:1px solid #d1d5db;
+    border-radius:7px; background:white; font-size:14px;
+}
+.campo textarea { min-height:105px; resize:vertical; }
+
+.foto-atual {
+    background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px;
+    padding:16px; margin-bottom:15px;
+}
+.foto-atual img {
+    width:100%; max-width:440px; max-height:260px; object-fit:cover;
+    border-radius:8px; display:block;
+}
+.foto-atual.sem-foto img { object-fit:contain; background:white; padding:25px; }
+
+.upload-box {
+    border:1px dashed #94a3b8; background:#f8fafc; border-radius:10px; padding:18px;
+}
+.upload-box small { display:block; color:#6b7280; margin-top:7px; }
+
+.acoes { display:flex; gap:10px; flex-wrap:wrap; margin-top:28px; }
+.btn-salvar {
+    border:none; background:#2563eb; color:white; padding:12px 20px;
+    border-radius:7px; font-weight:bold; cursor:pointer;
+}
+.btn-cancelar {
+    background:#e5e7eb; color:#111827; text-decoration:none; padding:12px 20px;
+    border-radius:7px; font-weight:bold;
+}
+@media(max-width:700px) {
+    .grade { grid-template-columns:1fr; }
+    .campo-total { grid-column:auto; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card form-card">
+
+        <div class="form-topo">
+            <h2>Editar Veículo</h2>
+            <p>Atualize os dados e, se desejar, substitua a foto do veículo.</p>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data">
+
+            <div class="secao">
+                <h3>Foto Atual</h3>
+
+                <div class="foto-atual {% if not veiculo[15] %}sem-foto{% endif %}">
+                    {% if veiculo[15] %}
+                    <img
+                        src="{{ url_for('static', filename='veiculos/' ~ veiculo[15]) }}"
+                        alt="Foto atual do veículo">
+                    {% else %}
+                    <img
+                        src="{{ url_for('static', filename='images/logo_totti.png') }}"
+                        alt="Sem foto cadastrada">
+                    {% endif %}
+                </div>
+
+                <div class="upload-box">
+                    <div class="campo">
+                        <label>Substituir foto</label>
+                        <input
+                            type="file"
+                            name="imagem"
+                            accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp">
+                        <small>Deixe em branco para manter a foto atual. Máximo de 8 MB.</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="secao">
+                <h3>Identificação</h3>
+
+                <div class="grade">
+                    <div class="campo">
+                        <label>Placa</label>
+                        <input type="text" name="placa" value="{{ veiculo[1] }}" required>
+                    </div>
+
+                    <div class="campo">
+                        <label>RENAVAM</label>
+                        <input type="text" name="renavam" value="{{ veiculo[3] }}" required>
+                    </div>
+
+                    <div class="campo campo-total">
+                        <label>Chassi</label>
+                        <input type="text" name="chassi" value="{{ veiculo[2] }}" required>
+                    </div>
+
+                    <div class="campo campo-total">
+                        <label>Marca / Modelo</label>
+                        <select name="id_modelo" required>
+                            {% for modelo in modelos %}
+                            <option
+                                value="{{ modelo[0] }}"
+                                {% if modelo[0] == veiculo[4] %}selected{% endif %}>
+                                {{ modelo[1] }} - {{ modelo[2] }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="secao">
+                <h3>Características</h3>
+
+                <div class="grade">
+                    <div class="campo">
+                        <label>Ano de Fabricação</label>
+                        <input type="number" name="ano_fabricacao" value="{{ veiculo[5] }}" required>
+                    </div>
+
+                    <div class="campo">
+                        <label>Ano Modelo</label>
+                        <input type="number" name="ano_modelo" value="{{ veiculo[6] }}" required>
+                    </div>
+
+                    <div class="campo">
+                        <label>Cor</label>
+                        <input type="text" name="cor" value="{{ veiculo[7] }}" required>
+                    </div>
+
+                    <div class="campo">
+                        <label>Quilometragem</label>
+                        <input type="number" min="0" name="quilometragem" value="{{ veiculo[10] }}" required>
+                    </div>
+
+                    <div class="campo">
+                        <label>Combustível</label>
+                        <select name="combustivel" required>
+                            {% for opcao in ["Flex","Gasolina","Etanol","Diesel","Elétrico","Híbrido"] %}
+                            <option value="{{ opcao }}" {% if veiculo[8] == opcao %}selected{% endif %}>{{ opcao }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="campo">
+                        <label>Câmbio</label>
+                        <select name="cambio" required>
+                            {% for opcao in ["Manual","Automático","CVT","Automatizado"] %}
+                            <option value="{{ opcao }}" {% if veiculo[9] == opcao %}selected{% endif %}>{{ opcao }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="campo campo-total">
+                        <label>Número do Motor</label>
+                        <input type="text" name="numero_motor" value="{{ veiculo[11] or '' }}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="secao">
+                <h3>Venda</h3>
+
+                <div class="grade">
+                    <div class="campo">
+                        <label>Preço de Venda (R$)</label>
+                        <input type="number" min="0" step="0.01" name="preco_venda" value="{{ veiculo[12] }}" required>
+                    </div>
+
+                    <div class="campo">
+                        <label>Status</label>
+                        <select name="status" required>
+                            {% for opcao in ["Disponível","Vendido","Reservado","Manutenção"] %}
+                            <option value="{{ opcao }}" {% if veiculo[13] == opcao %}selected{% endif %}>{{ opcao }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="secao">
+                <h3>Observações</h3>
+                <div class="campo">
+                    <textarea name="observacoes">{{ veiculo[14] or '' }}</textarea>
+                </div>
+            </div>
+
+            <div class="acoes">
+                <button type="submit" class="btn-salvar">Salvar Alterações</button>
+                <a href="/" class="btn-cancelar">Cancelar</a>
+            </div>
+
+        </form>
+    </div>
+</div>
+{% endblock %}

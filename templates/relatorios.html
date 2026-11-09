@@ -1,0 +1,547 @@
+{% extends "base.html" %}
+
+{% block title %}Relatórios e Dashboard{% endblock %}
+
+
+{% block styles %}
+
+<style>
+
+.dashboard-titulo {
+    margin-bottom: 25px;
+}
+
+.dashboard-titulo h2 {
+    margin-bottom: 5px;
+}
+
+.dashboard-titulo p {
+    color: #6b7280;
+    margin-top: 0;
+}
+
+
+/* ==========================================================
+   CARDS
+   ========================================================== */
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    margin-bottom: 25px;
+}
+
+.indicador {
+    background: white;
+    border-radius: 12px;
+    padding: 22px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    border-left: 5px solid #2563eb;
+}
+
+.indicador.verde {
+    border-left-color: #16a34a;
+}
+
+.indicador.vermelho {
+    border-left-color: #dc2626;
+}
+
+.indicador.amarelo {
+    border-left-color: #f59e0b;
+}
+
+.indicador.roxo {
+    border-left-color: #7c3aed;
+}
+
+.indicador.cinza {
+    border-left-color: #64748b;
+}
+
+.indicador span {
+    color: #6b7280;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.indicador h3 {
+    margin: 10px 0 0;
+    font-size: 25px;
+}
+
+
+/* ==========================================================
+   SEÇÕES
+   ========================================================== */
+
+.grade-relatorios {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+}
+
+.card h3 {
+    margin-top: 0;
+}
+
+
+/* ==========================================================
+   TABELAS
+   ========================================================== */
+
+.tabela-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 12px 10px;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+}
+
+th {
+    background: #111827;
+    color: white;
+}
+
+td.numero,
+th.numero {
+    text-align: right;
+}
+
+
+/* ==========================================================
+   BARRAS
+   ========================================================== */
+
+.ranking {
+    margin-top: 20px;
+}
+
+.ranking-item {
+    margin-bottom: 17px;
+}
+
+.ranking-topo {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 14px;
+}
+
+.barra-fundo {
+    background: #e5e7eb;
+    width: 100%;
+    height: 12px;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.barra {
+    background: #2563eb;
+    height: 100%;
+    border-radius: 10px;
+}
+
+
+/* ==========================================================
+   RESPONSIVIDADE
+   ========================================================== */
+
+@media (max-width: 1100px) {
+
+    .cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .grade-relatorios {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+
+    .cards {
+        grid-template-columns: 1fr;
+    }
+}
+
+</style>
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container">
+
+    <div class="dashboard-titulo">
+
+        <h2>Dashboard Gerencial</h2>
+
+        <p>
+            Visão geral dos principais indicadores da concessionária.
+        </p>
+
+    </div>
+
+
+    <!-- ======================================================
+         INDICADORES
+         ====================================================== -->
+
+    <div class="cards">
+
+        <div class="indicador">
+
+            <span>TOTAL DE VEÍCULOS</span>
+
+            <h3>
+                {{ total_veiculos }}
+            </h3>
+
+        </div>
+
+
+        <div class="indicador verde">
+
+            <span>DISPONÍVEIS</span>
+
+            <h3>
+                {{ veiculos_disponiveis }}
+            </h3>
+
+        </div>
+
+
+        <div class="indicador vermelho">
+
+            <span>VENDIDOS</span>
+
+            <h3>
+                {{ veiculos_vendidos }}
+            </h3>
+
+        </div>
+
+
+        <div class="indicador amarelo">
+
+            <span>CLIENTES</span>
+
+            <h3>
+                {{ total_clientes }}
+            </h3>
+
+        </div>
+
+
+        <div class="indicador verde">
+
+            <span>VALOR DO ESTOQUE</span>
+
+            <h3>
+
+                R$
+
+                {{ "{:,.2f}".format(valor_estoque)
+                    .replace(",", "X")
+                    .replace(".", ",")
+                    .replace("X", ".") }}
+
+            </h3>
+
+        </div>
+
+
+        <div class="indicador roxo">
+
+            <span>FATURAMENTO</span>
+
+            <h3>
+
+                R$
+
+                {{ "{:,.2f}".format(faturamento)
+                    .replace(",", "X")
+                    .replace(".", ",")
+                    .replace("X", ".") }}
+
+            </h3>
+
+        </div>
+
+
+        <div class="indicador">
+
+            <span>VENDEDORES</span>
+
+            <h3>
+                {{ total_vendedores }}
+            </h3>
+
+        </div>
+
+
+        <div class="indicador cinza">
+
+            <span>CUSTO DE MANUTENÇÕES</span>
+
+            <h3>
+
+                R$
+
+                {{ "{:,.2f}".format(total_manutencoes)
+                    .replace(",", "X")
+                    .replace(".", ",")
+                    .replace("X", ".") }}
+
+            </h3>
+
+        </div>
+
+    </div>
+
+
+    <!-- ======================================================
+         RANKINGS
+         ====================================================== -->
+
+    <div class="grade-relatorios">
+
+
+        <!-- VENDAS POR VENDEDOR -->
+
+        <div class="card">
+
+            <h3>
+                Desempenho dos Vendedores
+            </h3>
+
+            <div class="tabela-container">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Vendedor</th>
+
+                            <th class="numero">
+                                Vendas
+                            </th>
+
+                            <th class="numero">
+                                Faturamento
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                    {% for vendedor in vendas_vendedor %}
+
+                        <tr>
+
+                            <td>
+                                {{ vendedor[0] }}
+                            </td>
+
+                            <td class="numero">
+                                {{ vendedor[1] }}
+                            </td>
+
+                            <td class="numero">
+
+                                R$
+
+                                {{ "{:,.2f}".format(vendedor[2])
+                                    .replace(",", "X")
+                                    .replace(".", ",")
+                                    .replace("X", ".") }}
+
+                            </td>
+
+                        </tr>
+
+                    {% else %}
+
+                        <tr>
+
+                            <td colspan="3">
+                                Nenhum vendedor cadastrado.
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+
+        <!-- VENDAS POR MARCA -->
+
+        <div class="card">
+
+            <h3>
+                Veículos Vendidos por Marca
+            </h3>
+
+            {% if vendas_marca %}
+
+                {% set maior = vendas_marca[0][1] %}
+
+                <div class="ranking">
+
+                    {% for marca in vendas_marca %}
+
+                        <div class="ranking-item">
+
+                            <div class="ranking-topo">
+
+                                <strong>
+                                    {{ marca[0] }}
+                                </strong>
+
+                                <span>
+                                    {{ marca[1] }} venda(s)
+                                </span>
+
+                            </div>
+
+                            <div class="barra-fundo">
+
+                                <div
+                                    class="barra"
+                                    style="width:
+                                    {{ (marca[1] / maior * 100) if maior else 0 }}%;">
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            {% else %}
+
+                <p>
+                    Ainda não existem vendas registradas.
+                </p>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- ======================================================
+         ÚLTIMAS VENDAS
+         ====================================================== -->
+
+    <div class="card">
+
+        <h3>
+            Últimas Vendas
+        </h3>
+
+        <div class="tabela-container">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Data</th>
+                        <th>Cliente</th>
+                        <th>Veículo</th>
+                        <th>Placa</th>
+                        <th>Vendedor</th>
+                        <th class="numero">Valor</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for venda in ultimas_vendas %}
+
+                    <tr>
+
+                        <td>
+                            {{ venda[0].strftime('%d/%m/%Y') }}
+                        </td>
+
+                        <td>
+                            {{ venda[1] }}
+                        </td>
+
+                        <td>
+                            {{ venda[2] }}
+                            {{ venda[3] }}
+                        </td>
+
+                        <td>
+                            {{ venda[4] }}
+                        </td>
+
+                        <td>
+                            {{ venda[5] }}
+                        </td>
+
+                        <td class="numero">
+
+                            R$
+
+                            {{ "{:,.2f}".format(venda[6])
+                                .replace(",", "X")
+                                .replace(".", ",")
+                                .replace("X", ".") }}
+
+                        </td>
+
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+
+                        <td colspan="6">
+                            Nenhuma venda registrada.
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block title %}
+Visualizar Veículo - Totti Concessionaria
+{% endblock %}
+
+{% block styles %}
+<style>
+.detalhe-layout {
+    display:grid;
+    grid-template-columns:minmax(0,1.15fr) minmax(320px,.85fr);
+    gap:26px;
+    align-items:start;
+}
+.foto-principal {
+    background:#f8fafc;
+    border:1px solid #e5e7eb;
+    border-radius:14px;
+    overflow:hidden;
+    min-height:390px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+.foto-principal img {
+    width:100%;
+    height:440px;
+    object-fit:cover;
+    display:block;
+}
+.foto-principal.sem-foto img {
+    object-fit:contain;
+    max-width:650px;
+    padding:55px;
+}
+.detalhes {
+    background:white;
+    border:1px solid #e5e7eb;
+    border-radius:14px;
+    padding:25px;
+}
+.marca {
+    color:#6b7280;
+    font-size:12px;
+    font-weight:bold;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+}
+.detalhes h2 { font-size:30px; margin:6px 0 10px; }
+.subtitulo { color:#6b7280; margin-bottom:20px; }
+
+.status {
+    display:inline-block;
+    padding:7px 11px;
+    border-radius:20px;
+    font-size:11px;
+    font-weight:bold;
+    margin-bottom:20px;
+}
+.status-disponivel { background:#dcfce7; color:#166534; }
+.status-vendido { background:#fee2e2; color:#991b1b; }
+.status-outro { background:#e5e7eb; color:#374151; }
+
+.preco-label { display:block; color:#6b7280; font-size:11px; }
+.preco { font-size:31px; font-weight:800; margin:4px 0 22px; color:#111827; }
+
+.grade-dados {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+}
+.dado {
+    background:#f8fafc;
+    border-radius:8px;
+    padding:11px;
+}
+.dado span { display:block; }
+.dado .rotulo {
+    color:#9ca3af;
+    font-size:9px;
+    font-weight:bold;
+    text-transform:uppercase;
+    margin-bottom:4px;
+}
+.dado .valor { color:#374151; font-size:13px; font-weight:bold; word-break:break-word; }
+
+.observacoes {
+    margin-top:25px;
+    background:white;
+    border:1px solid #e5e7eb;
+    border-radius:14px;
+    padding:22px;
+}
+.observacoes h3 { margin-top:0; }
+.observacoes p { color:#4b5563; white-space:pre-wrap; }
+
+.acoes { display:flex; gap:10px; flex-wrap:wrap; margin-top:22px; }
+.acoes a {
+    text-decoration:none;
+    padding:12px 17px;
+    border-radius:7px;
+    font-weight:bold;
+    font-size:13px;
+}
+.btn-voltar { background:#e5e7eb; color:#111827; }
+.btn-editar { background:#f59e0b; color:white; }
+.btn-comprar { background:#16a34a; color:white; }
+
+@media(max-width:900px) {
+    .detalhe-layout { grid-template-columns:1fr; }
+    .foto-principal img { height:330px; }
+}
+@media(max-width:500px) {
+    .grade-dados { grid-template-columns:1fr; }
+    .foto-principal { min-height:240px; }
+    .foto-principal img { height:260px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <div class="detalhe-layout">
+
+        <div class="foto-principal {% if not veiculo[17] %}sem-foto{% endif %}">
+            {% if veiculo[17] %}
+            <img
+                src="{{ url_for('static', filename='veiculos/' ~ veiculo[17]) }}"
+                alt="{{ veiculo[4] }} {{ veiculo[5] }}">
+            {% else %}
+            <img
+                src="{{ url_for('static', filename='images/logo_totti.png') }}"
+                alt="Totti Concessionaria">
+            {% endif %}
+        </div>
+
+        <div class="detalhes">
+
+            <div class="marca">{{ veiculo[4] }}</div>
+            <h2>{{ veiculo[5] }}</h2>
+
+            <div class="subtitulo">
+                {{ veiculo[7] }} · {{ veiculo[8] or '-' }}
+            </div>
+
+            {% if veiculo[14] == "Disponível" %}
+            <span class="status status-disponivel">Disponível</span>
+            {% elif veiculo[14] == "Vendido" %}
+            <span class="status status-vendido">Vendido</span>
+            {% else %}
+            <span class="status status-outro">{{ veiculo[14] or 'Sem status' }}</span>
+            {% endif %}
+
+            <span class="preco-label">Preço de Venda</span>
+
+            <div class="preco">
+                {% if veiculo[13] is not none %}
+                R$ {{ "{:,.2f}".format(veiculo[13]).replace(",", "X").replace(".", ",").replace("X", ".") }}
+                {% else %}
+                Consulte o preço
+                {% endif %}
+            </div>
+
+            <div class="grade-dados">
+                <div class="dado">
+                    <span class="rotulo">Placa</span>
+                    <span class="valor">{{ veiculo[1] or '-' }}</span>
+                </div>
+
+                <div class="dado">
+                    <span class="rotulo">RENAVAM</span>
+                    <span class="valor">{{ veiculo[2] or '-' }}</span>
+                </div>
+
+                <div class="dado">
+                    <span class="rotulo">Ano Fabricação</span>
+                    <span class="valor">{{ veiculo[6] or '-' }}</span>
+                </div>
+
+                <div class="dado">
+                    <span class="rotulo">Ano Modelo</span>
+                    <span class="valor">{{ veiculo[7] or '-' }}</span>
+                </div>
+
+                <div class="dado">
+                    <span class="rotulo">Combustível</span>
+                    <span class="valor">{{ veiculo[9] or '-' }}</span>
+                </div>
+
+                <div class="dado">
+                    <span class="rotulo">Câmbio</span>
+                    <span class="valor">{{ veiculo[10] or '-' }}</span>
+                </div>
+
+                <div class="dado">
+                    <span class="rotulo">Quilometragem</span>
+                    <span class="valor">
+                        {% if veiculo[11] is not none %}
+                        {{ "{:,}".format(veiculo[11]).replace(",", ".") }} km
+                        {% else %}-{% endif %}
+                    </span>
+                </div>
+
+                <div class="dado">
+                    <span class="rotulo">Número do Motor</span>
+                    <span class="valor">{{ veiculo[12] or '-' }}</span>
+                </div>
+
+                <div class="dado">
+                    <span class="rotulo">Chassi</span>
+                    <span class="valor">{{ veiculo[3] or '-' }}</span>
+                </div>
+
+                <div class="dado">
+                    <span class="rotulo">Entrada</span>
+                    <span class="valor">
+                        {% if veiculo[15] %}
+                        {{ veiculo[15].strftime('%d/%m/%Y') }}
+                        {% else %}-{% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <div class="acoes">
+                <a href="/" class="btn-voltar">← Voltar</a>
+
+                {% if session.get("usuario_perfil") == "Cliente" and veiculo[14] == "Disponível" and veiculo[13] is not none %}
+                <a href="/comprar/{{ veiculo[0] }}" class="btn-comprar">Comprar este veículo</a>
+                {% endif %}
+
+                {% if session.get("usuario_perfil") in ["Superuser","Administrador"] %}
+                <a href="/veiculos/{{ veiculo[0] }}/editar" class="btn-editar">Editar Veículo</a>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+
+    <div class="observacoes">
+        <h3>Observações</h3>
+        <p>{{ veiculo[16] or 'Nenhuma observação cadastrada.' }}</p>
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,72 @@
+import os
+
+from flask import (
+    request,
+    redirect,
+    url_for,
+    session
+)
+
+from app import app, conectar
+from auth import criar_auth_blueprint
+
+
+# ============================================================
+# SEGURANÇA DA SESSÃO
+# ============================================================
+
+app.secret_key = os.environ.get(
+    "SECRET_KEY",
+    "totti-concessionaria-chave-local"
+)
+
+
+# ============================================================
+# MÓDULO DE AUTENTICAÇÃO
+# ============================================================
+
+auth_bp = criar_auth_blueprint(
+    conectar
+)
+
+app.register_blueprint(
+    auth_bp
+)
+
+
+# ============================================================
+# PROTEGER O SISTEMA
+# ============================================================
+
+@app.before_request
+def exigir_login():
+
+    rotas_publicas = {
+        "auth.login",
+        "static"
+    }
+
+    if request.endpoint is None:
+        return None
+
+    if request.endpoint in rotas_publicas:
+        return None
+
+    if not session.get("usuario_id"):
+
+        return redirect(
+            url_for("auth.login")
+        )
+
+    return None
+
+
+# ============================================================
+# INICIAR SISTEMA
+# ============================================================
+
+if __name__ == "__main__":
+
+    app.run(
+        debug=True
+    )

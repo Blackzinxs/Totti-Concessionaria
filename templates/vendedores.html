@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block title %}Vendedores{% endblock %}
+
+{% block styles %}
+
+<style>
+
+.topo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.btn-novo {
+    display: inline-block;
+    background: #16a34a;
+    color: white;
+    padding: 11px 18px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.busca {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.busca input {
+    min-width: 320px;
+    padding: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+}
+
+.btn-pesquisar {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-limpar {
+    background: #e5e7eb;
+    color: #111827;
+    padding: 10px 18px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 13px 10px;
+    text-align: center;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+th {
+    background: #111827;
+    color: white;
+}
+
+.acoes {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-editar {
+    background: #f59e0b;
+    color: white;
+    padding: 7px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.btn-excluir {
+    background: #dc2626;
+    color: white;
+    border: none;
+    padding: 7px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+</style>
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container">
+
+    <div class="card">
+
+        <div class="topo">
+
+            <div>
+
+                <h2>Vendedores</h2>
+
+                <a href="/vendedores/novo" class="btn-novo">
+                    + Cadastrar Vendedor
+                </a>
+
+            </div>
+
+            <form method="GET" class="busca">
+
+                <input
+                    type="text"
+                    name="busca"
+                    value="{{ busca }}"
+                    placeholder="Nome, CPF, telefone ou e-mail">
+
+                <button type="submit" class="btn-pesquisar">
+                    Pesquisar
+                </button>
+
+                <a href="/vendedores" class="btn-limpar">
+                    Limpar
+                </a>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <div class="card">
+
+        <table>
+
+            <thead>
+
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>CPF</th>
+                    <th>Telefone</th>
+                    <th>E-mail</th>
+                    <th>Ações</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for vendedor in vendedores %}
+
+                <tr>
+
+                    <td>{{ vendedor[0] }}</td>
+                    <td>{{ vendedor[1] }}</td>
+                    <td>{{ vendedor[2] }}</td>
+                    <td>{{ vendedor[3] or '' }}</td>
+                    <td>{{ vendedor[4] or '' }}</td>
+
+                    <td>
+
+                        <div class="acoes">
+
+                            <a
+                                href="/vendedores/{{ vendedor[0] }}/editar"
+                                class="btn-editar">
+                                Editar
+                            </a>
+
+                            <form
+                                method="POST"
+                                action="/vendedores/{{ vendedor[0] }}/excluir"
+                                onsubmit="return confirm('Tem certeza que deseja excluir este vendedor?');">
+
+                                <button
+                                    type="submit"
+                                    class="btn-excluir">
+                                    Excluir
+                                </button>
+
+                            </form>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% else %}
+
+                <tr>
+                    <td colspan="6">
+                        Nenhum vendedor encontrado.
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+
+<html lang="pt-br">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>
+Criar Conta - Totti Concessionaria
+</title>
+
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f3f4f6;
+    color: #111827;
+}
+
+.container {
+    width: 92%;
+    max-width: 850px;
+    margin: 40px auto;
+}
+
+.card {
+    background: white;
+    padding: 32px;
+    border-radius: 14px;
+    box-shadow:
+        0 5px 25px
+        rgba(0,0,0,0.10);
+}
+
+.logo {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.logo h1 {
+    margin-bottom: 5px;
+}
+
+.logo p {
+    color: #6b7280;
+    margin-top: 0;
+}
+
+.titulo-secao {
+    margin-top: 30px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 8px;
+}
+
+.tipo-pessoa {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 20px;
+}
+
+.tipo-pessoa label {
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.grade {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
+
+.campo {
+    margin-bottom: 5px;
+}
+
+.campo-total {
+    grid-column: 1 / -1;
+}
+
+.campo label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 6px;
+}
+
+.campo input {
+    width: 100%;
+    padding: 11px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+}
+
+.erro {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 13px;
+    border-radius: 7px;
+    margin-bottom: 20px;
+}
+
+.acoes {
+    display: flex;
+    gap: 10px;
+    margin-top: 28px;
+}
+
+.btn-cadastrar {
+    background: #16a34a;
+    color: white;
+    border: none;
+    padding: 13px 22px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-voltar {
+    background: #e5e7eb;
+    color: #111827;
+    padding: 13px 22px;
+    border-radius: 7px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.info {
+    background: #eff6ff;
+    color: #1e40af;
+    padding: 13px;
+    border-radius: 7px;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 700px) {
+
+    .grade {
+        grid-template-columns: 1fr;
+    }
+
+    .campo-total {
+        grid-column: auto;
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+<div class="card">
+
+
+<div class="logo">
+
+<h1>
+Totti Concessionaria
+</h1>
+
+<p>
+Crie sua conta de cliente
+</p>
+
+</div>
+
+
+<div class="info">
+
+Seu cadastro será criado com o perfil
+<strong>Cliente</strong>.
+
+</div>
+
+
+{% if erro %}
+
+<div class="erro">
+
+{{ erro }}
+
+</div>
+
+{% endif %}
+
+
+<form method="POST">
+
+
+<h3 class="titulo-secao">
+Tipo de Pessoa
+</h3>
+
+
+<div class="tipo-pessoa">
+
+<label>
+
+<input
+type="radio"
+name="tipo_pessoa"
+value="PF"
+checked
+onchange="alterarTipoPessoa()">
+
+Pessoa Física
+
+</label>
+
+
+<label>
+
+<input
+type="radio"
+name="tipo_pessoa"
+value="PJ"
+onchange="alterarTipoPessoa()">
+
+Pessoa Jurídica
+
+</label>
+
+</div>
+
+
+<!-- PESSOA FÍSICA -->
+
+<div id="dados_pf">
+
+<div class="grade">
+
+
+<div class="campo">
+
+<label>
+Nome Completo
+</label>
+
+<input
+type="text"
+name="nome"
+id="nome">
+
+</div>
+
+
+<div class="campo">
+
+<label>
+CPF
+</label>
+
+<input
+type="text"
+name="cpf"
+id="cpf"
+placeholder="000.000.000-00">
+
+</div>
+
+
+</div>
+
+</div>
+
+
+<!-- PESSOA JURÍDICA -->
+
+<div
+id="dados_pj"
+style="display:none;">
+
+<div class="grade">
+
+
+<div class="campo">
+
+<label>
+Razão Social
+</label>
+
+<input
+type="text"
+name="razao_social"
+id="razao_social">
+
+</div>
+
+
+<div class="campo">
+
+<label>
+Nome Fantasia
+</label>
+
+<input
+type="text"
+name="nome_fantasia">
+
+</div>
+
+
+<div class="campo">
+
+<label>
+CNPJ
+</label>
+
+<input
+type="text"
+name="cnpj"
+id="cnpj"
+placeholder="00.000.000/0000-00">
+
+</div>
+
+
+<div class="campo">
+
+<label>
+Inscrição Estadual
+</label>
+
+<input
+type="text"
+name="inscricao_estadual">
+
+</div>
+
+
+</div>
+
+</div>
+
+
+<h3 class="titulo-secao">
+Contato
+</h3>
+
+
+<div class="grade">
+
+
+<div class="campo">
+
+<label>
+Telefone
+</label>
+
+<input
+type="text"
+name="telefone">
+
+</div>
+
+
+<div class="campo">
+
+<label>
+E-mail
+</label>
+
+<input
+type="email"
+name="email"
+required>
+
+</div>
+
+
+<div class="campo campo-total">
+
+<label>
+Endereço
+</label>
+
+<input
+type="text"
+name="endereco">
+
+</div>
+
+
+</div>
+
+
+<h3 class="titulo-secao">
+Dados de Acesso
+</h3>
+
+
+<div class="grade">
+
+
+<div class="campo">
+
+<label>
+Senha
+</label>
+
+<input
+type="password"
+name="senha"
+minlength="6"
+required>
+
+</div>
+
+
+<div class="campo">
+
+<label>
+Confirmar Senha
+</label>
+
+<input
+type="password"
+name="confirmar_senha"
+minlength="6"
+required>
+
+</div>
+
+
+</div>
+
+
+<div class="acoes">
+
+<button
+type="submit"
+class="btn-cadastrar">
+
+Criar Minha Conta
+
+</button>
+
+
+<a
+href="/login"
+class="btn-voltar">
+
+Voltar ao Login
+
+</a>
+
+</div>
+
+
+</form>
+
+</div>
+
+</div>
+
+
+<script>
+
+function alterarTipoPessoa() {
+
+    const tipo =
+        document.querySelector(
+            'input[name="tipo_pessoa"]:checked'
+        ).value;
+
+    const pf =
+        document.getElementById(
+            "dados_pf"
+        );
+
+    const pj =
+        document.getElementById(
+            "dados_pj"
+        );
+
+    const nome =
+        document.getElementById(
+            "nome"
+        );
+
+    const cpf =
+        document.getElementById(
+            "cpf"
+        );
+
+    const razao =
+        document.getElementById(
+            "razao_social"
+        );
+
+    const cnpj =
+        document.getElementById(
+            "cnpj"
+        );
+
+
+    if (tipo === "PF") {
+
+        pf.style.display = "block";
+
+        pj.style.display = "none";
+
+        nome.required = true;
+        cpf.required = true;
+
+        razao.required = false;
+        cnpj.required = false;
+
+    } else {
+
+        pf.style.display = "none";
+
+        pj.style.display = "block";
+
+        nome.required = false;
+        cpf.required = false;
+
+        razao.required = true;
+        cnpj.required = true;
+
+    }
+
+}
+
+alterarTipoPessoa();
+
+</script>
+
+
+</body>
+
+</html>

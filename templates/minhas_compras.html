@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}
+Minhas Compras - Totti Concessionaria
+{% endblock %}
+
+
+{% block styles %}
+
+<style>
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 12px;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: center;
+}
+
+th {
+    background: #111827;
+    color: white;
+}
+
+</style>
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container">
+
+<div class="card">
+
+<h2>
+Minhas Compras
+</h2>
+
+
+<table>
+
+
+<thead>
+
+<tr>
+
+<th>Data</th>
+<th>Veículo</th>
+<th>Placa</th>
+<th>Ano</th>
+<th>Cor</th>
+<th>Valor</th>
+<th>Pagamento</th>
+<th>Vendedor</th>
+
+</tr>
+
+</thead>
+
+
+<tbody>
+
+
+{% for compra in compras %}
+
+<tr>
+
+
+<td>
+
+{{ compra[1].strftime('%d/%m/%Y') }}
+
+</td>
+
+
+<td>
+
+{{ compra[2] }}
+{{ compra[3] }}
+
+</td>
+
+
+<td>
+{{ compra[4] }}
+</td>
+
+
+<td>
+{{ compra[5] }}
+</td>
+
+
+<td>
+{{ compra[6] }}
+</td>
+
+
+<td>
+
+R$
+
+{{ "{:,.2f}".format(compra[7])
+.replace(",", "X")
+.replace(".", ",")
+.replace("X", ".") }}
+
+</td>
+
+
+<td>
+{{ compra[8] or '' }}
+</td>
+
+
+<td>
+{{ compra[9] }}
+</td>
+
+
+</tr>
+
+
+{% else %}
+
+
+<tr>
+
+<td colspan="8">
+
+Você ainda não possui compras
+registradas na Totti Concessionaria.
+
+</td>
+
+</tr>
+
+
+{% endfor %}
+
+
+</tbody>
+
+
+</table>
+
+
+</div>
+
+</div>
+
+{% endblock %}

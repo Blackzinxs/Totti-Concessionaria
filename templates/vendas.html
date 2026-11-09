@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+
+{% block title %}Vendas{% endblock %}
+
+{% block styles %}
+
+<style>
+
+.topo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.btn-nova {
+    display: inline-block;
+    background: #16a34a;
+    color: white;
+    padding: 11px 18px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.busca {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.busca input {
+    min-width: 320px;
+    padding: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+}
+
+.btn-pesquisar {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-limpar {
+    background: #e5e7eb;
+    color: #111827;
+    padding: 10px 18px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.tabela {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 1100px;
+}
+
+th,
+td {
+    padding: 13px 10px;
+    text-align: center;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+th {
+    background: #111827;
+    color: white;
+}
+
+.acoes {
+    display: flex;
+    justify-content: center;
+}
+
+.btn-excluir {
+    background: #dc2626;
+    color: white;
+    border: none;
+    padding: 7px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+</style>
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container">
+
+    <div class="card">
+
+        <div class="topo">
+
+            <div>
+
+                <h2>Vendas</h2>
+
+                <a
+                    href="/vendas/nova"
+                    class="btn-nova">
+                    + Registrar Venda
+                </a>
+
+            </div>
+
+            <form method="GET" class="busca">
+
+                <input
+                    type="text"
+                    name="busca"
+                    value="{{ busca }}"
+                    placeholder="Cliente, vendedor, placa, marca ou modelo">
+
+                <button
+                    type="submit"
+                    class="btn-pesquisar">
+                    Pesquisar
+                </button>
+
+                <a
+                    href="/vendas"
+                    class="btn-limpar">
+                    Limpar
+                </a>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <div class="card">
+
+        <div class="tabela">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>ID</th>
+                        <th>Cliente</th>
+                        <th>Vendedor</th>
+                        <th>Veículo</th>
+                        <th>Placa</th>
+                        <th>Data</th>
+                        <th>Valor</th>
+                        <th>Pagamento</th>
+                        <th>Observações</th>
+                        <th>Ações</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for venda in vendas %}
+
+                    <tr>
+
+                        <td>{{ venda[0] }}</td>
+
+                        <td>{{ venda[1] }}</td>
+
+                        <td>{{ venda[2] }}</td>
+
+                        <td>
+                            {{ venda[3] }}
+                            {{ venda[4] }}
+                        </td>
+
+                        <td>{{ venda[5] }}</td>
+
+                        <td>
+                            {{ venda[6].strftime('%d/%m/%Y') }}
+                        </td>
+
+                        <td>
+                            R$
+                            {{ "{:,.2f}".format(venda[7])
+                                .replace(",", "X")
+                                .replace(".", ",")
+                                .replace("X", ".") }}
+                        </td>
+
+                        <td>
+                            {{ venda[8] or '' }}
+                        </td>
+
+                        <td>
+                            {{ venda[9] or '' }}
+                        </td>
+
+                        <td>
+
+                            <div class="acoes">
+
+                                <form
+                                    method="POST"
+                                    action="/vendas/{{ venda[0] }}/excluir"
+                                    onsubmit="return confirm('Tem certeza que deseja excluir esta venda?');">
+
+                                    <button
+                                        type="submit"
+                                        class="btn-excluir">
+                                        Excluir
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+                        <td colspan="10">
+                            Nenhuma venda encontrada.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

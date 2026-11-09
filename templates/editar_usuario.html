@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+
+{% block title %}
+Editar Usuário - Totti Concessionaria
+{% endblock %}
+
+
+{% block styles %}
+
+<style>
+
+.formulario {
+    max-width: 700px;
+}
+
+.campo {
+    margin-bottom: 18px;
+}
+
+.campo label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: bold;
+}
+
+.campo input,
+.campo select {
+    width: 100%;
+    padding: 11px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+}
+
+.checkbox {
+    margin: 20px 0;
+}
+
+.acoes {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-salvar {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 11px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-cancelar {
+    background: #e5e7eb;
+    color: #111827;
+    padding: 11px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.aviso {
+    color: #6b7280;
+    font-size: 13px;
+    margin-top: 5px;
+}
+
+.superuser-box {
+    background: #fef3c7;
+    color: #92400e;
+    padding: 12px;
+    border-radius: 6px;
+    font-weight: bold;
+}
+
+</style>
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container">
+
+<div class="card formulario">
+
+<h2>Editar Usuário</h2>
+
+
+<form method="POST">
+
+
+<div class="campo">
+
+<label>Nome</label>
+
+<input
+type="text"
+name="nome"
+value="{{ usuario[1] }}"
+required>
+
+</div>
+
+
+<div class="campo">
+
+<label>E-mail</label>
+
+<input
+type="email"
+name="email"
+value="{{ usuario[2] }}"
+required>
+
+</div>
+
+
+<div class="campo">
+
+<label>Perfil</label>
+
+
+{% if usuario[3] == "Superuser" %}
+
+<div class="superuser-box">
+Superuser
+</div>
+
+{% else %}
+
+<select
+name="perfil"
+id="perfil"
+onchange="controlarCliente()"
+required>
+
+<option
+value="Administrador"
+{% if usuario[3] == 'Administrador' %}
+selected
+{% endif %}>
+
+Administrador
+
+</option>
+
+<option
+value="Vendedor"
+{% if usuario[3] == 'Vendedor' %}
+selected
+{% endif %}>
+
+Vendedor
+
+</option>
+
+<option
+value="Cliente"
+{% if usuario[3] == 'Cliente' %}
+selected
+{% endif %}>
+
+Cliente
+
+</option>
+
+</select>
+
+{% endif %}
+
+</div>
+
+
+{% if usuario[3] != "Superuser" %}
+
+<div
+class="campo"
+id="campo_cliente">
+
+<label>
+Vincular ao Cliente
+</label>
+
+<select
+name="id_cliente"
+id="id_cliente">
+
+<option value="">
+Selecione o cliente
+</option>
+
+{% for cliente in clientes %}
+
+<option
+value="{{ cliente[0] }}"
+
+{% if usuario[5] == cliente[0] %}
+selected
+{% endif %}>
+
+{{ cliente[1] }}
+-
+{{ cliente[2] or 'Sem documento' }}
+
+</option>
+
+{% endfor %}
+
+</select>
+
+</div>
+
+{% endif %}
+
+
+<div class="campo">
+
+<label>Nova Senha</label>
+
+<input
+type="password"
+name="senha">
+
+<div class="aviso">
+
+Deixe em branco para manter
+a senha atual.
+
+</div>
+
+</div>
+
+
+{% if usuario[3] != "Superuser" %}
+
+<div class="checkbox">
+
+<input
+type="checkbox"
+name="ativo"
+id="ativo"
+
+{% if usuario[4] %}
+checked
+{% endif %}>
+
+<label for="ativo">
+Usuário ativo
+</label>
+
+</div>
+
+{% else %}
+
+<div class="superuser-box">
+
+Superuser permanentemente ativo.
+
+</div>
+
+<br>
+
+{% endif %}
+
+
+<div class="acoes">
+
+<button
+type="submit"
+class="btn-salvar">
+
+Salvar Alterações
+
+</button>
+
+<a
+href="/usuarios"
+class="btn-cancelar">
+
+Cancelar
+
+</a>
+
+</div>
+
+
+</form>
+
+</div>
+
+</div>
+
+
+{% if usuario[3] != "Superuser" %}
+
+<script>
+
+function controlarCliente() {
+
+    const perfil =
+        document.getElementById("perfil").value;
+
+    const campo =
+        document.getElementById("campo_cliente");
+
+    const cliente =
+        document.getElementById("id_cliente");
+
+
+    if (perfil === "Cliente") {
+
+        campo.style.display = "block";
+
+        cliente.required = true;
+
+    } else {
+
+        campo.style.display = "none";
+
+        cliente.required = false;
+
+    }
+
+}
+
+controlarCliente();
+
+</script>
+
+{% endif %}
+
+
+{% endblock %}

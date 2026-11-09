@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Editar Cliente</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f3f4f6;
+            color: #111827;
+        }
+
+        header {
+            background: #1f2937;
+            color: white;
+            padding: 18px 30px;
+        }
+
+        header h1 {
+            margin: 0;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 900px;
+            margin: 35px auto;
+        }
+
+        .card {
+            background: white;
+            padding: 28px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .tipo-pessoa {
+            display: flex;
+            gap: 30px;
+            padding: 15px;
+            background: #f9fafb;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+
+        .tipo-pessoa label {
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .formulario {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+        }
+
+        .campo {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .campo label {
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+
+        .campo input {
+            padding: 11px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+        }
+
+        .largura-total {
+            grid-column: 1 / -1;
+        }
+
+        .grupo-pj {
+            grid-column: 1 / -1;
+        }
+
+        .grupo-pj-interno {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+        }
+
+        .acoes {
+            margin-top: 25px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-salvar {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 11px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-cancelar {
+            background: #e5e7eb;
+            color: #111827;
+            padding: 11px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>Editar Cliente</h1>
+</header>
+
+<div class="container">
+
+    <div class="card">
+
+        <form method="POST">
+
+            <h2>Tipo de Cliente</h2>
+
+            <div class="tipo-pessoa">
+
+                <label>
+                    <input
+                        type="radio"
+                        name="tipo_pessoa"
+                        value="PF"
+                        {% if cliente[1] == 'PF' %}checked{% endif %}
+                        onchange="alterarTipoPessoa()">
+
+                    Pessoa Física
+                </label>
+
+                <label>
+                    <input
+                        type="radio"
+                        name="tipo_pessoa"
+                        value="PJ"
+                        {% if cliente[1] == 'PJ' %}checked{% endif %}
+                        onchange="alterarTipoPessoa()">
+
+                    Pessoa Jurídica
+                </label>
+
+            </div>
+
+            <div class="formulario">
+
+                <div id="camposPF" style="display: contents;">
+
+                    <div class="campo largura-total">
+
+                        <label>Nome Completo</label>
+
+                        <input
+                            type="text"
+                            id="nome"
+                            name="nome"
+                            value="{{ cliente[2] or '' }}">
+
+                    </div>
+
+                    <div class="campo largura-total">
+
+                        <label>CPF</label>
+
+                        <input
+                            type="text"
+                            id="cpf"
+                            name="cpf"
+                            value="{{ cliente[3] or '' }}">
+
+                    </div>
+
+                </div>
+
+                <div id="camposPJ" class="grupo-pj">
+
+                    <div class="grupo-pj-interno">
+
+                        <div class="campo largura-total">
+
+                            <label>Razão Social</label>
+
+                            <input
+                                type="text"
+                                id="razao_social"
+                                name="razao_social"
+                                value="{{ cliente[4] or '' }}">
+
+                        </div>
+
+                        <div class="campo largura-total">
+
+                            <label>Nome Fantasia</label>
+
+                            <input
+                                type="text"
+                                id="nome_fantasia"
+                                name="nome_fantasia"
+                                value="{{ cliente[5] or '' }}">
+
+                        </div>
+
+                        <div class="campo">
+
+                            <label>CNPJ</label>
+
+                            <input
+                                type="text"
+                                id="cnpj"
+                                name="cnpj"
+                                value="{{ cliente[6] or '' }}">
+
+                        </div>
+
+                        <div class="campo">
+
+                            <label>Inscrição Estadual</label>
+
+                            <input
+                                type="text"
+                                id="inscricao_estadual"
+                                name="inscricao_estadual"
+                                value="{{ cliente[7] or '' }}">
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="campo">
+
+                    <label>Telefone</label>
+
+                    <input
+                        type="text"
+                        name="telefone"
+                        value="{{ cliente[8] or '' }}">
+
+                </div>
+
+                <div class="campo">
+
+                    <label>E-mail</label>
+
+                    <input
+                        type="email"
+                        name="email"
+                        value="{{ cliente[9] or '' }}">
+
+                </div>
+
+                <div class="campo largura-total">
+
+                    <label>Endereço</label>
+
+                    <input
+                        type="text"
+                        name="endereco"
+                        value="{{ cliente[10] or '' }}">
+
+                </div>
+
+            </div>
+
+            <div class="acoes">
+
+                <button
+                    type="submit"
+                    class="btn-salvar">
+                    Salvar Alterações
+                </button>
+
+                <a
+                    href="/clientes"
+                    class="btn-cancelar">
+                    Cancelar
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<script>
+
+function alterarTipoPessoa() {
+
+    const tipo = document.querySelector(
+        'input[name="tipo_pessoa"]:checked'
+    ).value;
+
+    const camposPF =
+        document.getElementById("camposPF");
+
+    const camposPJ =
+        document.getElementById("camposPJ");
+
+    const nome =
+        document.getElementById("nome");
+
+    const cpf =
+        document.getElementById("cpf");
+
+    const razaoSocial =
+        document.getElementById("razao_social");
+
+    const cnpj =
+        document.getElementById("cnpj");
+
+
+    if (tipo === "PF") {
+
+        camposPF.style.display = "contents";
+        camposPJ.style.display = "none";
+
+        nome.required = true;
+        cpf.required = true;
+
+        razaoSocial.required = false;
+        cnpj.required = false;
+
+    } else {
+
+        camposPF.style.display = "none";
+        camposPJ.style.display = "block";
+
+        nome.required = false;
+        cpf.required = false;
+
+        razaoSocial.required = true;
+        cnpj.required = true;
+    }
+}
+
+alterarTipoPessoa();
+
+</script>
+
+</body>
+</html>
