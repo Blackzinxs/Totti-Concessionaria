@@ -1,11 +1,19 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session, abort
 from werkzeug.utils import secure_filename
 import psycopg2
 import os
 import uuid
+import secrets
 
 
 app = Flask(__name__)
+# Configure uma SECRET_KEY fixa e secreta em Render > Environment.
+# O valor aleatório abaixo serve somente como fallback de desenvolvimento.
+app.secret_key = os.environ.get("SECRET_KEY") or secrets.token_hex(32)
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+if os.environ.get("RENDER"):
+    app.config["SESSION_COOKIE_SECURE"] = True
 
 
 # ============================================================
@@ -2122,6 +2130,64 @@ from relatorios import criar_relatorios_blueprint
 relatorios_bp = criar_relatorios_blueprint(conectar)
 
 app.register_blueprint(relatorios_bp)
+
+
+# ============================================================
+# AUTENTICAÇÃO, USUÁRIOS E CONTROLE DE ACESSO
+# ============================================================
+
+from auth import criar_auth_blueprint
+from usuarios import criar_usuarios_blueprint
+
+app.register_blueprint(criar_auth_blueprint(conectar))
+app.register_blueprint(criar_usuarios_blueprint(conectar))
+
+
+@app.before_request
+def verificar_acesso():
+    """Protege as rotas existentes (inclusive chamadas por URL direta)."""
+    endpoint = request.endpoint or ""
+
+    # Arquivos estáticos e páginas de entrada pública.
+    if endpoint in {"static", "auth.login", "auth.cadastro"}:
+        return None
+
+    if not session.get("usuario_id"):
+        if endpoint == "auth.logout":
+            return redirect(url_for("auth.login"))
+        return redirect(url_for("auth.login", next=request.path))
+
+    perfil = session.get("usuario_perfil")
+    if perfil not in {"Superuser", "Administrador", "Vendedor", "Cliente"}:
+        session.clear()
+        return redirect(url_for("auth.login"))
+
+    if endpoint == "auth.logout":
+        return None
+
+    # Somente o Superuser pode consultar, criar, editar e excluir usuários.
+    if endpoint.startswith("usuarios."):
+        if perfil != "Superuser":
+            abort(403)
+        return None
+
+    # O Cliente só acessa o catálogo e os detalhes dos veículos.
+    if perfil == "Cliente":
+        if endpoint not in {"index", "visualizar_veiculo"}:
+            abort(403)
+        return None
+
+    # O Vendedor pode operar cadastros e vendas, mas não excluir registros.
+    if perfil == "Vendedor":
+        if endpoint.startswith("excluir_") or endpoint in {"excluir_venda"}:
+            abort(403)
+        return None
+
+    # Administradores não podem excluir clientes.
+    if perfil == "Administrador" and endpoint == "excluir_cliente":
+        abort(403)
+
+    return None
 
 
 # ============================================================
