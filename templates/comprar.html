@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Solicitar compra - Totti Concessionária{% endblock %}
+{% block content %}
+<div class="container" style="max-width:850px;margin:35px auto;padding:0 15px">
+  <a href="{{ url_for('index') }}" style="color:#475569">← Voltar aos veículos</a>
+  <div style="background:white;padding:28px;border-radius:14px;margin-top:18px;box-shadow:0 3px 16px #0001">
+    <h2>Solicitar compra</h2>
+    <p>Revise as informações do veículo antes de enviar sua solicitação.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:24px;align-items:center;margin-bottom:22px">
+      {% if veiculo[7] %}
+      <img src="{{ url_for('static', filename='veiculos/' ~ veiculo[7]) }}" alt="Foto do veículo" style="width:230px;max-width:100%;height:160px;object-fit:cover;border-radius:12px">
+      {% else %}
+      <img src="{{ url_for('static', filename='images/logo_totti.png') }}" alt="Totti Concessionária" style="width:230px;max-width:100%;height:160px;object-fit:contain;border-radius:12px;background:#f8fafc">
+      {% endif %}
+      <div>
+        <h3>{{ veiculo[1] }} {{ veiculo[2] }}</h3>
+        <p>Ano: {{ veiculo[3] }} {% if veiculo[4] %}• Cor: {{ veiculo[4] }}{% endif %}</p>
+        <p style="font-size:25px;font-weight:bold">R$ {{ '{:,.2f}'.format(veiculo[5]).replace(',', 'X').replace('.', ',').replace('X', '.') }}</p>
+        <span style="color:#166534">Disponível para solicitação</span>
+      </div>
+    </div>
+    {% if erro %}<p role="alert" style="color:#b91c1c">{{ erro }}</p>{% endif %}
+    <form method="POST" action="{{ url_for('comprar_veiculo', id_veiculo=veiculo[0]) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <label for="forma_pagamento" style="display:block;font-weight:bold;margin-bottom:8px">Forma de pagamento desejada</label>
+      <select name="forma_pagamento" id="forma_pagamento" required style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:8px;margin-bottom:20px">
+        <option value="">Selecione uma opção</option>
+        <option value="À vista">À vista</option>
+        <option value="Financiamento">Financiamento</option>
+        <option value="Consórcio">Consórcio</option>
+        <option value="A combinar">A combinar</option>
+      </select>
+      <label for="observacoes" style="display:block;font-weight:bold;margin-bottom:8px">Observações (opcional)</label>
+      <textarea name="observacoes" id="observacoes" rows="4" maxlength="1000" style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:8px" placeholder="Escreva alguma informação ou dúvida para nossa equipe"></textarea>
+      <p style="font-size:13px;color:#64748b">Sua solicitação será analisada pela concessionária. Este envio não reserva o veículo, não confirma pagamento e não conclui a venda.</p>
+      <button type="submit" style="background:#16a34a;color:white;border:0;border-radius:8px;padding:14px 22px;font-weight:bold;cursor:pointer">Confirmar interesse na compra</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}Solicitações de compra - Totti Concessionária{% endblock %}
+{% block content %}
+<div class="container" style="max-width:1400px;margin:30px auto;padding:0 15px">
+ <h2>Solicitações de compra</h2>
+ <p>Pedidos de interesse dos clientes. Não representam vendas concluídas.</p>
+ <div style="overflow:auto;background:white;border-radius:12px;padding:15px">
+ <table style="width:100%;border-collapse:collapse;font-size:14px">
+  <thead><tr style="text-align:left;background:#f1f5f9"><th style="padding:12px">Data</th><th>Cliente</th><th>Veículo</th><th>Preço</th><th>Pagamento</th><th>Observações</th><th>Status</th><th>Ação</th></tr></thead>
+  <tbody>
+  {% for s in solicitacoes %}
+  <tr style="border-bottom:1px solid #e5e7eb">
+    <td style="padding:12px;white-space:nowrap">{{ s[1].strftime('%d/%m/%Y %H:%M') if s[1] else '-' }}</td>
+    <td><strong>{{ s[2] }}</strong><div>{{ s[3] }}</div></td>
+    <td>{{ s[4] }} {{ s[5] }} ({{ s[6] }})<div>{{ s[7] }}</div></td>
+    <td>R$ {{ '{:,.2f}'.format(s[8]).replace(',', 'X').replace('.', ',').replace('X', '.') }}</td>
+    <td>{{ s[9] }}</td><td>{{ s[10] or '-' }}</td><td>{{ s[11] }}</td>
+    <td>
+      {% if s[11] == 'Pendente' and session.get('usuario_perfil') in ['Superuser', 'Administrador'] %}
+      <form method="POST" action="{{ url_for('atualizar_solicitacao_compra', id_solicitacao=s[0]) }}" style="display:flex;gap:5px;flex-wrap:wrap">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button name="status" value="Em atendimento" type="submit">Atender</button>
+        <button name="status" value="Cancelada" type="submit">Cancelar</button>
+      </form>
+      {% else %}-{% endif %}
+    </td>
+  </tr>
+  {% else %}<tr><td colspan="8" style="padding:20px">Nenhuma solicitação registrada até o momento.</td></tr>{% endfor %}
+  </tbody>
+ </table>
+ </div>
+ <p>Para concluir uma venda, utilize o módulo <a href="{{ url_for('nova_venda') }}">Nova venda</a>, após confirmar os dados e a disponibilidade.</p>
+</div>
+{% endblock %}
