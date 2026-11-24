@@ -7,12 +7,14 @@ import secrets
 
 
 app = Flask(__name__)
-# Configure uma SECRET_KEY fixa e secreta em Render > Environment.
-# O valor aleatório abaixo serve somente como fallback de desenvolvimento.
+# No ambiente de produção, a SECRET_KEY deve permanecer estável.
+# Configure-a em Vercel > Project Settings > Environment Variables.
+if os.environ.get("VERCEL") and not os.environ.get("SECRET_KEY"):
+    raise RuntimeError("Configure SECRET_KEY nas variáveis de ambiente da Vercel")
 app.secret_key = os.environ.get("SECRET_KEY") or secrets.token_hex(32)
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-if os.environ.get("RENDER"):
+if os.environ.get("RENDER") or os.environ.get("VERCEL"):
     app.config["SESSION_COOKIE_SECURE"] = True
 
 
@@ -33,10 +35,10 @@ EXTENSOES_IMAGEM_PERMITIDAS = {
     "webp"
 }
 
-os.makedirs(
-    PASTA_IMAGENS_VEICULOS,
-    exist_ok=True
-)
+# Na Vercel, o código do deploy é somente leitura. Não tente criar
+# pastas em static durante a inicialização do app.
+if not os.environ.get("VERCEL"):
+    os.makedirs(PASTA_IMAGENS_VEICULOS, exist_ok=True)
 
 # Limite máximo de 8 MB por arquivo enviado.
 app.config["MAX_CONTENT_LENGTH"] = 8 * 1024 * 1024
@@ -74,6 +76,9 @@ def vazio_para_none(valor):
 
 
 def salvar_imagem_veiculo(arquivo):
+    # Upload persistente precisa de storage externo (S3, R2 etc.).
+    if os.environ.get("VERCEL") and arquivo is not None and arquivo.filename:
+        raise ValueError("Upload de fotos indisponível na Vercel até configurar armazenamento externo.")
     if arquivo is None or arquivo.filename == "":
         return None
 
@@ -2133,8 +2138,14 @@ app.register_blueprint(relatorios_bp)
 
 
 # ============================================================
-# SOLICITAÇÕES DE COMPRA (NÃO SÃO VENDAS CONCLUÍDAS)
+# PROPOSTAS / PEDIDOS / ACOMPANHAMENTO DE COMPRA
 # ============================================================
+from decimal import Decimal, InvalidOperation
+
+STATUS_ATIVOS_COMPRA = ("Pendente", "Em atendimento", "Em análise", "Informações solicitadas", "Aprovada")
+STATUS_COMPRA = ("Pendente", "Em atendimento", "Em análise", "Informações solicitadas", "Aprovada", "Recusada", "Cancelada", "Concluída")
+FORMAS_COMPRA = ("À vista", "Financiamento", "Consórcio", "A combinar")
+
 
 def token_compra():
     token = session.get("csrf_compra")
@@ -2145,22 +2156,44 @@ def token_compra():
 
 
 def verificar_token_compra():
-    if not secrets.compare_digest(
-        str(session.get("csrf_compra", "")),
-        str(request.form.get("csrf_token", ""))
-    ) or not session.get("csrf_compra"):
-        abort(400, description="Formulário expirado. Reabra a página e tente novamente.")
+    esperado = session.get("csrf_compra")
+    recebido = request.form.get("csrf_token", "")
+    if not esperado or not secrets.compare_digest(esperado, recebido):
+        abort(400, description="Formulário inválido. Reabra a página.")
+
+
+def numero_protocolo(id_solicitacao):
+    return f"TOT-{int(id_solicitacao):08d}"
+
+
+@app.context_processor
+def helpers_compra():
+    return {"numero_protocolo": numero_protocolo}
+
+
+def decimal_formulario(valor, *, obrigatorio=False):
+    texto = (valor or "").strip().replace("R$", "").replace(" ", "")
+    if not texto:
+        if obrigatorio:
+            raise ValueError("Informe o valor da proposta.")
+        return None
+    if "," in texto:
+        texto = texto.replace(".", "").replace(",", ".")
+    try:
+        numero = Decimal(texto)
+    except InvalidOperation:
+        raise ValueError("Informe um valor numérico válido.")
+    if not numero.is_finite() or numero <= 0 or numero > Decimal("999999999999.99"):
+        raise ValueError("Informe um valor positivo válido.")
+    if numero.as_tuple().exponent < -2:
+        raise ValueError("Utilize no máximo duas casas decimais.")
+    return numero
 
 
 @app.route("/comprar/<int:id_veiculo>", methods=["GET", "POST"])
 def comprar_veiculo(id_veiculo):
-    if session.get("usuario_perfil") != "Cliente":
+    if session.get("usuario_perfil") != "Cliente" or not session.get("id_cliente"):
         abort(403)
-    usuario_id = session.get("usuario_id")
-    id_cliente = session.get("id_cliente")
-    if not id_cliente:
-        abort(403, description="Seu cadastro não possui um cliente associado.")
-
     conexao = conectar()
     try:
         with conexao.cursor() as cursor:
@@ -2168,63 +2201,153 @@ def comprar_veiculo(id_veiculo):
                 SELECT v.id_veiculo, ma.nome, mo.nome, v.ano_modelo,
                        v.cor, v.preco_venda, v.status, v.imagem
                 FROM veiculos v
-                JOIN modelos mo ON mo.id_modelo = v.id_modelo
-                JOIN marcas ma ON ma.id_marca = mo.id_marca
-                WHERE v.id_veiculo = %s
+                JOIN modelos mo ON mo.id_modelo=v.id_modelo
+                JOIN marcas ma ON ma.id_marca=mo.id_marca
+                WHERE v.id_veiculo=%s
             """, (id_veiculo,))
             veiculo = cursor.fetchone()
             if not veiculo:
                 abort(404)
             if veiculo[6] != "Disponível" or veiculo[5] is None:
-                abort(409, description="Este veículo não está disponível para compra.")
-
+                abort(409, description="Veículo indisponível para novas propostas.")
             erro = None
             if request.method == "POST":
                 verificar_token_compra()
                 forma = request.form.get("forma_pagamento", "")
-                observacoes = request.form.get("observacoes", "").strip()[:1000]
-                if forma not in {"À vista", "Financiamento", "Consórcio", "A combinar"}:
-                    erro = "Selecione uma forma de pagamento válida."
-                else:
-                    # Bloqueia o veículo para verificar disponibilidade e pedido duplicado.
-                    cursor.execute("SELECT status FROM veiculos WHERE id_veiculo=%s FOR UPDATE", (id_veiculo,))
+                obs = request.form.get("observacoes", "").strip()[:1500]
+                try:
+                    if forma not in FORMAS_COMPRA:
+                        raise ValueError("Selecione a forma de pagamento.")
+                    valor = decimal_formulario(request.form.get("valor_proposta"), obrigatorio=True)
+                    entrada = decimal_formulario(request.form.get("entrada_proposta"))
+                    parcelas_texto = request.form.get("parcelas_proposta", "").strip()
+                    parcelas = int(parcelas_texto) if parcelas_texto else None
+                    if parcelas is not None and not (1 <= parcelas <= 120):
+                        raise ValueError("A quantidade de parcelas deve ficar entre 1 e 120.")
+                    if entrada is not None and entrada > valor:
+                        raise ValueError("A entrada não pode ultrapassar a proposta.")
+                    # Sem valores de entrada/parcelamento para pagamentos sem parcelamento.
+                    if forma == "À vista" and (entrada is not None or parcelas is not None):
+                        raise ValueError("Para pagamento à vista, deixe entrada e parcelas vazios.")
+                except (ValueError, TypeError) as e:
+                    erro = str(e)
+                if erro is None:
+                    cursor.execute("SELECT status, preco_venda FROM veiculos WHERE id_veiculo=%s FOR UPDATE", (id_veiculo,))
                     atual = cursor.fetchone()
                     if not atual or atual[0] != "Disponível":
                         conexao.rollback()
                         abort(409, description="Este veículo não está mais disponível.")
                     cursor.execute("""
                         SELECT id_solicitacao FROM solicitacoes_compra
-                        WHERE id_usuario=%s AND id_veiculo=%s AND status IN ('Pendente','Em atendimento')
+                        WHERE id_usuario=%s AND id_veiculo=%s
+                          AND status IN ('Pendente','Em atendimento','Em análise','Informações solicitadas','Aprovada')
                         LIMIT 1
-                    """, (usuario_id, id_veiculo))
-                    if cursor.fetchone():
-                        erro = "Você já tem uma solicitação em aberto para este veículo."
-                    else:
-                        cursor.execute("""
-                            INSERT INTO solicitacoes_compra
-                            (id_usuario, id_cliente, id_veiculo, forma_pagamento, observacoes, preco_solicitado)
-                            VALUES (%s,%s,%s,%s,%s,%s)
-                        """, (usuario_id, id_cliente, id_veiculo, forma, observacoes or None, veiculo[5]))
-                        conexao.commit()
-                        return render_template("compra_sucesso.html", veiculo=veiculo)
-            return render_template("comprar.html", veiculo=veiculo, erro=erro,
-                                   csrf_token=token_compra())
+                    """, (session["usuario_id"], id_veiculo))
+                    repetido = cursor.fetchone()
+                    if repetido:
+                        conexao.rollback()
+                        return redirect(url_for("detalhe_minha_compra", id_solicitacao=repetido[0]))
+                    cursor.execute("""
+                        INSERT INTO solicitacoes_compra
+                        (id_usuario,id_cliente,id_veiculo,forma_pagamento,observacoes,
+                         preco_solicitado,valor_proposta,entrada_proposta,parcelas_proposta)
+                        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id_solicitacao
+                    """, (session["usuario_id"],session["id_cliente"],id_veiculo,forma,
+                           obs or None,atual[1],valor,entrada,parcelas))
+                    numero = cursor.fetchone()[0]
+                    conexao.commit()
+                    return redirect(url_for("detalhe_minha_compra", id_solicitacao=numero))
+            return render_template("comprar.html", veiculo=veiculo, erro=erro, csrf_token=token_compra())
     finally:
         conexao.close()
 
 
-@app.route("/solicitacoes-compra", methods=["GET"])
-def listar_solicitacoes_compra():
-    if session.get("usuario_perfil") not in {"Superuser", "Administrador", "Vendedor"}:
+def buscar_proposta(cursor, id_solicitacao, *, bloquear=False):
+    cursor.execute("""
+        SELECT s.id_solicitacao, s.id_usuario, s.id_cliente, s.id_veiculo,
+               s.criado_em, s.forma_pagamento, s.observacoes, s.preco_solicitado,
+               s.status, s.valor_proposta, s.entrada_proposta, s.parcelas_proposta,
+               s.resposta_administracao, s.id_venda, s.atualizado_em,
+               u.nome, u.email, ma.nome, mo.nome, v.ano_modelo, v.placa, v.status
+        FROM solicitacoes_compra s
+        JOIN usuarios u ON u.id_usuario=s.id_usuario
+        JOIN veiculos v ON v.id_veiculo=s.id_veiculo
+        JOIN modelos mo ON mo.id_modelo=v.id_modelo
+        JOIN marcas ma ON ma.id_marca=mo.id_marca
+        WHERE s.id_solicitacao=%s
+    """ + (" FOR UPDATE OF s" if bloquear else ""), (id_solicitacao,))
+    return cursor.fetchone()
+
+
+@app.route("/minhas-compras")
+def minhas_compras():
+    if session.get("usuario_perfil") != "Cliente":
         abort(403)
     conexao = conectar()
     try:
         with conexao.cursor() as cursor:
             cursor.execute("""
-                SELECT s.id_solicitacao, s.criado_em, u.nome, u.email,
-                       ma.nome, mo.nome, v.ano_modelo, v.placa,
-                       s.preco_solicitado, s.forma_pagamento, s.observacoes,
-                       s.status, s.id_veiculo
+                SELECT s.id_solicitacao, s.criado_em, ma.nome, mo.nome, v.ano_modelo,
+                       s.valor_proposta, s.status, s.atualizado_em
+                FROM solicitacoes_compra s JOIN veiculos v ON v.id_veiculo=s.id_veiculo
+                JOIN modelos mo ON mo.id_modelo=v.id_modelo
+                JOIN marcas ma ON ma.id_marca=mo.id_marca
+                WHERE s.id_usuario=%s ORDER BY s.criado_em DESC
+            """, (session["usuario_id"],))
+            pedidos = cursor.fetchall()
+        return render_template("minhas_compras.html", pedidos=pedidos)
+    finally:
+        conexao.close()
+
+
+@app.route("/minhas-compras/<int:id_solicitacao>")
+def detalhe_minha_compra(id_solicitacao):
+    if session.get("usuario_perfil") != "Cliente":
+        abort(403)
+    conexao = conectar()
+    try:
+        with conexao.cursor() as cursor:
+            pedido = buscar_proposta(cursor, id_solicitacao)
+        if not pedido or pedido[1] != session.get("usuario_id"):
+            abort(404)
+        return render_template("detalhe_compra.html", pedido=pedido, csrf_token=token_compra())
+    finally:
+        conexao.close()
+
+
+@app.route("/minhas-compras/<int:id_solicitacao>/cancelar", methods=["POST"])
+def cancelar_minha_compra(id_solicitacao):
+    if session.get("usuario_perfil") != "Cliente":
+        abort(403)
+    verificar_token_compra()
+    conexao = conectar()
+    try:
+        with conexao.cursor() as cursor:
+            cursor.execute("""
+                UPDATE solicitacoes_compra SET status='Cancelada', atualizado_em=NOW()
+                WHERE id_solicitacao=%s AND id_usuario=%s
+                  AND status IN ('Pendente','Em atendimento','Em análise','Informações solicitadas')
+                RETURNING id_solicitacao
+            """, (id_solicitacao, session["usuario_id"]))
+            if not cursor.fetchone():
+                conexao.rollback()
+                abort(409, description="Pedido inexistente ou já não pode ser cancelado.")
+        conexao.commit()
+    finally:
+        conexao.close()
+    return redirect(url_for("detalhe_minha_compra", id_solicitacao=id_solicitacao))
+
+
+@app.route("/solicitacoes-compra")
+def listar_solicitacoes_compra():
+    if session.get("usuario_perfil") not in {"Superuser","Administrador","Vendedor"}:
+        abort(403)
+    conexao = conectar()
+    try:
+        with conexao.cursor() as cursor:
+            cursor.execute("""
+                SELECT s.id_solicitacao, s.criado_em, u.nome, ma.nome, mo.nome,
+                       s.valor_proposta, s.status, s.atualizado_em
                 FROM solicitacoes_compra s
                 JOIN usuarios u ON u.id_usuario=s.id_usuario
                 JOIN veiculos v ON v.id_veiculo=s.id_veiculo
@@ -2232,8 +2355,25 @@ def listar_solicitacoes_compra():
                 JOIN marcas ma ON ma.id_marca=mo.id_marca
                 ORDER BY s.criado_em DESC, s.id_solicitacao DESC
             """)
-            solicitacoes = cursor.fetchall()
-        return render_template("solicitacoes_compra.html", solicitacoes=solicitacoes,
+            pedidos = cursor.fetchall()
+        return render_template("solicitacoes_compra.html", pedidos=pedidos)
+    finally:
+        conexao.close()
+
+
+@app.route("/solicitacoes-compra/<int:id_solicitacao>")
+def detalhe_solicitacao_compra(id_solicitacao):
+    if session.get("usuario_perfil") not in {"Superuser","Administrador","Vendedor"}:
+        abort(403)
+    conexao = conectar()
+    try:
+        with conexao.cursor() as cursor:
+            pedido = buscar_proposta(cursor, id_solicitacao)
+            if not pedido:
+                abort(404)
+            cursor.execute("SELECT id_vendedor, nome FROM vendedores ORDER BY nome")
+            vendedores = cursor.fetchall()
+        return render_template("avaliar_compra.html", pedido=pedido, vendedores=vendedores,
                                csrf_token=token_compra())
     finally:
         conexao.close()
@@ -2244,24 +2384,106 @@ def atualizar_solicitacao_compra(id_solicitacao):
     if session.get("usuario_perfil") not in {"Superuser", "Administrador"}:
         abort(403)
     verificar_token_compra()
-    novo_status = request.form.get("status", "")
-    if novo_status not in {"Em atendimento", "Cancelada"}:
+    novo = request.form.get("status", "")
+    if novo not in {"Em análise", "Informações solicitadas", "Aprovada", "Recusada", "Cancelada"}:
         abort(400)
+    resposta = request.form.get("resposta_administracao", "").strip()[:1500]
+    if novo in {"Informações solicitadas", "Recusada"} and not resposta:
+        abort(400, description="Informe uma justificativa ou mensagem ao cliente.")
     conexao = conectar()
     try:
         with conexao.cursor() as cursor:
-            cursor.execute("""
-                UPDATE solicitacoes_compra SET status=%s, atualizado_em=NOW()
-                WHERE id_solicitacao=%s AND status='Pendente'
-                RETURNING id_solicitacao
-            """, (novo_status, id_solicitacao))
-            if cursor.fetchone() is None:
+            atual = buscar_proposta(cursor, id_solicitacao, bloquear=True)
+            if not atual or atual[8] in {"Recusada", "Cancelada", "Concluída"}:
                 conexao.rollback()
-                abort(409, description="Solicitação já atualizada ou não encontrada.")
+                abort(409, description="Pedido encerrado ou inexistente.")
+            if atual[8] == "Aprovada" and novo != "Cancelada":
+                conexao.rollback()
+                abort(409, description="Proposta já aprovada. Conclua a venda ou cancele.")
+            if novo == "Aprovada":
+                # Verifica se o veículo foi vendido antes de aprovar.
+                cursor.execute("SELECT status FROM veiculos WHERE id_veiculo=%s FOR UPDATE", (atual[3],))
+                if cursor.fetchone()[0] != "Disponível":
+                    conexao.rollback()
+                    abort(409, description="Veículo já não está disponível.")
+                cursor.execute("""
+                    SELECT id_solicitacao FROM solicitacoes_compra
+                    WHERE id_veiculo=%s AND id_solicitacao<>%s AND status='Aprovada'
+                    LIMIT 1
+                """, (atual[3],id_solicitacao))
+                if cursor.fetchone():
+                    conexao.rollback()
+                    abort(409, description="Já existe proposta aprovada para esse veículo.")
+            cursor.execute("""
+                UPDATE solicitacoes_compra SET status=%s, resposta_administracao=%s,
+                    atualizado_em=NOW(), avaliado_em=NOW()
+                WHERE id_solicitacao=%s
+            """, (novo, resposta or None, id_solicitacao))
         conexao.commit()
     finally:
         conexao.close()
-    return redirect(url_for("listar_solicitacoes_compra"))
+    return redirect(url_for("detalhe_solicitacao_compra", id_solicitacao=id_solicitacao))
+
+
+@app.route("/solicitacoes-compra/<int:id_solicitacao>/concluir", methods=["POST"])
+def concluir_compra(id_solicitacao):
+    if session.get("usuario_perfil") not in {"Superuser", "Administrador"}:
+        abort(403)
+    verificar_token_compra()
+    try:
+        id_vendedor = int(request.form.get("id_vendedor", ""))
+        valor = decimal_formulario(request.form.get("valor_final"), obrigatorio=True)
+        forma = request.form.get("forma_pagamento", "")
+        if forma not in FORMAS_COMPRA:
+            raise ValueError("Forma de pagamento inválida.")
+        if id_vendedor <= 0:
+            raise ValueError("Selecione um vendedor válido.")
+    except (ValueError,TypeError) as e:
+        abort(400, description=str(e))
+    conexao = conectar()
+    try:
+        with conexao.cursor() as cursor:
+            # Bloqueio do pedido + bloqueio do veículo asseguram atomicidade.
+            pedido = buscar_proposta(cursor, id_solicitacao, bloquear=True)
+            if not pedido or pedido[8] != "Aprovada" or pedido[13] is not None:
+                conexao.rollback()
+                abort(409, description="A proposta precisa estar aprovada e não concluída.")
+            cursor.execute("SELECT status FROM veiculos WHERE id_veiculo=%s FOR UPDATE", (pedido[3],))
+            veiculo = cursor.fetchone()
+            if not veiculo or veiculo[0] != "Disponível":
+                conexao.rollback()
+                abort(409, description="Veículo indisponível. Nenhuma venda foi registrada.")
+            cursor.execute("SELECT 1 FROM vendedores WHERE id_vendedor=%s", (id_vendedor,))
+            if not cursor.fetchone():
+                conexao.rollback()
+                abort(400, description="Vendedor não encontrado.")
+            cursor.execute("""
+                INSERT INTO vendas (id_cliente,id_vendedor,id_veiculo,data_venda,
+                                    valor_venda,forma_pagamento,observacoes)
+                VALUES (%s,%s,%s,CURRENT_DATE,%s,%s,%s) RETURNING id_venda
+            """, (pedido[2], id_vendedor, pedido[3], valor, forma,
+                   f"Venda do protocolo {numero_protocolo(id_solicitacao)}"))
+            id_venda = cursor.fetchone()[0]
+            cursor.execute("UPDATE veiculos SET status='Vendido' WHERE id_veiculo=%s", (pedido[3],))
+            cursor.execute("""
+                UPDATE solicitacoes_compra SET status='Concluída', id_venda=%s,
+                    finalizado_em=NOW(), atualizado_em=NOW()
+                WHERE id_solicitacao=%s
+            """, (id_venda,id_solicitacao))
+            cursor.execute("""
+                UPDATE solicitacoes_compra SET status='Recusada', atualizado_em=NOW(),
+                    resposta_administracao='Veículo vendido em outra proposta.'
+                WHERE id_veiculo=%s AND id_solicitacao<>%s
+                AND status IN ('Pendente','Em atendimento','Em análise',
+                               'Informações solicitadas','Aprovada')
+            """, (pedido[3],id_solicitacao))
+        conexao.commit()
+    except Exception:
+        conexao.rollback()
+        raise
+    finally:
+        conexao.close()
+    return redirect(url_for("detalhe_solicitacao_compra", id_solicitacao=id_solicitacao))
 
 
 # ============================================================
@@ -2305,7 +2527,7 @@ def verificar_acesso():
 
     # O Cliente só acessa o catálogo e os detalhes dos veículos.
     if perfil == "Cliente":
-        if endpoint not in {"index", "visualizar_veiculo", "comprar_veiculo"}:
+        if endpoint not in {"index", "visualizar_veiculo", "comprar_veiculo", "minhas_compras", "detalhe_minha_compra", "cancelar_minha_compra"}:
             abort(403)
         return None
 
